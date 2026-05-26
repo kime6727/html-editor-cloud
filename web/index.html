@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor – HTML & Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #007AFF;
+            --primary-dark: #0056CC;
+            --secondary: #5856D6;
+            --accent: #34C759;
+            --bg: #FAFBFF;
+            --surface: #FFFFFF;
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --text-muted: #A1A1A6;
+            --border: rgba(0,0,0,0.06);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 32px rgba(0,0,0,0.08);
+            --shadow-lg: 0 24px 64px rgba(0,0,0,0.12);
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+            --navbar-height: 72px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ===== NAVIGATION ===== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(250, 251, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 22px;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-primary);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* ===== LANGUAGE SWITCHER ===== */
+        .lang-switcher {
+            position: relative;
+            display: inline-block;
+        }
+
+        .lang-btn {
+            background: rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .lang-btn:hover {
+            background: rgba(0, 0, 0, 0.08);
+            border-color: var(--text-secondary);
+        }
+
+        .lang-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: none;
+            z-index: 1001;
+            min-width: 140px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .lang-dropdown.show {
+            display: block;
+        }
+
+        .lang-option {
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .lang-option:hover {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .lang-option.active {
+            color: var(--primary);
+            background: rgba(0, 122, 255, 0.05);
+        }
+
+        .lang-option.active::after {
+            content: '✓';
+            font-size: 12px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            padding: 160px 24px 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(0,122,255,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-bg-2 {
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(88,86,214,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: rgba(0,122,255,0.08);
+            color: var(--primary);
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            width: fit-content;
+        }
+
+        .hero-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -1.5px;
+        }
+
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            line-height: 1.7;
+            max-width: 520px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Hero Image / Device Mockup */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .device-mockup {
+            position: relative;
+            width: 320px;
+            height: 650px;
+            background: var(--text-primary);
+            border-radius: 48px;
+            padding: 12px;
+            box-shadow:
+                0 0 0 2px rgba(255,255,255,0.1),
+                0 32px 64px rgba(0,0,0,0.2),
+                0 0 0 1px rgba(0,0,0,0.05);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(-2deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        .device-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .device-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 28px;
+            background: var(--text-primary);
+            border-radius: 0 0 20px 20px;
+            z-index: 10;
+        }
+
+        .screen-content {
+            padding: 50px 20px 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .code-block {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'SF Mono', monospace;
+            font-size: 11px;
+            color: #7ee787;
+            line-height: 1.6;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .code-block .tag { color: #ff7b72; }
+        .code-block .attr { color: #79c0ff; }
+        .code-block .val { color: #a5d6ff; }
+
+        .preview-window {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .preview-header {
+            padding: 10px 14px;
+            background: #f5f5f7;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .preview-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .preview-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .preview-card {
+            width: 80%;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .qr-floating {
+            position: absolute;
+            bottom: -20px;
+            right: -40px;
+            width: 140px;
+            height: 160px;
+            background: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            animation: float-delayed 6s ease-in-out infinite 1s;
+        }
+
+        @keyframes float-delayed {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .qr-placeholder {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 2px;
+            padding: 4px;
+        }
+
+        .qr-cell {
+            background: var(--text-primary);
+            border-radius: 1px;
+        }
+
+        .qr-cell:nth-child(3),
+        .qr-cell:nth-child(5),
+        .qr-cell:nth-child(7),
+        .qr-cell:nth-child(10),
+        .qr-cell:nth-child(14),
+        .qr-cell:nth-child(18),
+        .qr-cell:nth-child(21),
+        .qr-cell:nth-child(23) {
+            background: transparent;
+        }
+
+        .qr-text {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* ===== FEATURES SECTION ===== */
+        .features {
+            padding: 120px 24px;
+            background: var(--surface);
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 640px;
+            margin: 0 auto 80px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            padding: 8px 18px;
+            background: rgba(0,122,255,0.08);
+            color: var(--primary);
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 44px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+
+        .section-desc {
+            font-size: 18px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--bg);
+            border-radius: var(--radius-lg);
+            padding: 40px 32px;
+            border: 1px solid var(--border);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: transparent;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .feature-card:nth-child(1) .feature-icon { background: rgba(0,122,255,0.1); }
+        .feature-card:nth-child(2) .feature-icon { background: rgba(52,199,89,0.1); }
+        .feature-card:nth-child(3) .feature-icon { background: rgba(88,86,214,0.1); }
+        .feature-card:nth-child(4) .feature-icon { background: rgba(255,149,0,0.1); }
+        .feature-card:nth-child(5) .feature-icon { background: rgba(175,82,222,0.1); }
+        .feature-card:nth-child(6) .feature-icon { background: rgba(255,59,48,0.1); }
+
+        .feature-card h3 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* ===== SHOWCASE SECTION ===== */
+        .showcase {
+            padding: 120px 24px;
+            background: var(--bg);
+            overflow: hidden;
+        }
+
+        .showcase-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .showcase-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+            margin-bottom: 120px;
+        }
+
+        .showcase-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .showcase-row.reverse {
+            direction: rtl;
+        }
+
+        .showcase-row.reverse > * {
+            direction: ltr;
+        }
+
+        .showcase-visual {
+            position: relative;
+        }
+
+        .showcase-img {
+            width: 100%;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
+
+        .showcase-content h3 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .showcase-content p {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 28px;
+        }
+
+        .showcase-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .showcase-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .showcase-list .check {
+            width: 24px;
+            height: 24px;
+            background: rgba(52,199,89,0.15);
+            color: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        /* ===== DOWNLOAD SECTION ===== */
+        .download {
+            padding: 120px 24px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-bg {
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+        }
+
+        .download-bg-2 {
+            position: absolute;
+            bottom: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+        }
+
+        .download-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .download h2 {
+            font-size: 48px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .download p {
+            font-size: 20px;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 48px;
+            line-height: 1.7;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-appstore {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 32px;
+            background: white;
+            color: var(--text-primary);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .btn-appstore:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+        }
+
+        .btn-appstore .icon {
+            font-size: 32px;
+        }
+
+        .btn-appstore .text {
+            text-align: left;
+        }
+
+        .btn-appstore .text small {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .btn-appstore .text strong {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            padding: 80px 24px 40px;
+            background: var(--text-primary);
+            color: white;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand .logo {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .footer-brand p {
+            color: rgba(255,255,255,0.6);
+            font-size: 15px;
+            line-height: 1.7;
+            max-width: 300px;
+        }
+
+        .footer-links h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: white;
+        }
+
+        .footer-links ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .footer-bottom p {
+            color: rgba(255,255,255,0.4);
+            font-size: 14px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        /* ===== SCROLL ANIMATIONS ===== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .hero h1 { font-size: 44px; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-links.active {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--bg-primary);
+                padding: 20px;
+                gap: 16px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+                border-bottom: 1px solid var(--border);
+                z-index: 100;
+            }
+            .mobile-menu-btn { display: block; }
+            .nav-cta .btn-secondary { display: none; }
+
+            .hero {
+                padding: 120px 20px 80px;
+            }
+
+            .hero-container {
+                grid-template-columns: 1fr;
+                gap: 60px;
+                text-align: center;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 17px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .hero-stats {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                order: -1;
+            }
+
+            .device-mockup {
+                width: 260px;
+                height: 530px;
+                border-radius: 40px;
+            }
+
+            .qr-floating {
+                width: 110px;
+                height: 130px;
+                right: -20px;
+                bottom: -10px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .showcase-row {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                margin-bottom: 80px;
+            }
+
+            .showcase-row.reverse {
+                direction: ltr;
+            }
+
+            .showcase-content h3 {
+                font-size: 28px;
+            }
+
+            .download h2 {
+                font-size: 32px;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 30px; }
+            .hero-buttons { flex-direction: column; }
+            .btn { width: 100%; }
+            .hero-stats { gap: 24px; }
+            .stat-number { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon"><img src="pic/logo@1x.png" alt="Logo"></div>
+                <span data-i18n="app_name">Code Editor</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features" data-i18n="nav_features">功能特性</a></li>
+                <li><a href="#showcase" data-i18n="nav_showcase">产品展示</a></li>
+                <li><a href="#download" data-i18n="nav_download">立即下载</a></li>
+            </ul>
+            <div class="nav-cta">
+                <div class="lang-switcher">
+                    <button class="lang-btn" id="lang-btn">
+                        <span>🌐</span>
+                        <span id="current-lang">English</span>
+                    </button>
+                    <div class="lang-dropdown" id="lang-dropdown">
+                        <div class="lang-option" data-lang="en">English</div>
+                        <div class="lang-option" data-lang="zh">简体中文</div>
+                        <div class="lang-option" data-lang="ja">日本語</div>
+                        <div class="lang-option" data-lang="ko">한국어</div>
+                    </div>
+                </div>
+                <a href="#download" class="btn btn-primary" data-i18n="nav_cta">Free Download</a>
+                <button class="mobile-menu-btn">☰</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-bg-2"></div>
+        <div class="hero-container">
+            <div class="hero-content reveal">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    <span data-i18n="hero_badge">iOS 17+ 专属开发工具</span>
+                </div>
+                <h1 data-i18n="hero_title">
+                    在 iPhone 上<br>
+                    <span class="gradient-text">实时预览 HTML</span>
+                </h1>
+                <p data-i18n="hero_desc">
+                    专为开发者打造的移动端 HTML 编辑与预览分享工具。支持实时预览、多设备模拟、二维码分享，让移动开发更高效。
+                </p>
+                <div class="hero-buttons">
+                    <a href="#download" class="btn btn-primary">
+                        <span>📱</span> <span data-i18n="hero_btn_download">免费下载</span>
+                    </a>
+                    <a href="#features" class="btn btn-secondary" data-i18n="hero_btn_more">了解更多</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" data-i18n="stat_realtime">实时</span>
+                        <span class="stat-label" data-i18n="stat_instant">即时预览</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-i18n="stat_local">本地</span>
+                        <span class="stat-label" data-i18n="stat_secure">安全分享</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-i18n="stat_multi">多设备</span>
+                        <span class="stat-label" data-i18n="stat_cross">跨屏预览</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual reveal reveal-delay-2">
+                <div class="device-mockup">
+                    <div class="device-screen">
+                        <div class="device-notch"></div>
+                        <div class="screen-content">
+                            <div class="code-block">
+                                <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="val">"hero"</span><span class="tag">&gt;</span><br>
+                                &nbsp;&nbsp;<span class="tag">&lt;h1&gt;</span>Hello World<span class="tag">&lt;/h1&gt;</span><br>
+                                &nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>Welcome<span class="tag">&lt;/p&gt;</span><br>
+                                <span class="tag">&lt;/div&gt;</span>
+                            </div>
+                            <div class="preview-window">
+                                <div class="preview-header">
+                                    <div class="preview-dot" style="background:#ff5f57"></div>
+                                    <div class="preview-dot" style="background:#febc2e"></div>
+                                    <div class="preview-dot" style="background:#28c840"></div>
+                                </div>
+                                <div class="preview-body">
+                                    <div class="preview-card"></div>
+                                    <div class="preview-card" style="opacity:0.6; height:40px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="qr-floating">
+                    <div class="qr-placeholder">
+                        <div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div>
+                        <div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div>
+                        <div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div>
+                        <div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div>
+                        <div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div>
+                    </div>
+                    <span class="qr-text" data-i18n="scan_to_preview">扫码预览</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-header reveal">
+            <span class="section-tag" data-i18n="section_features_tag">核心功能</span>
+            <h2 class="section-title" data-i18n="section_features_title">为开发者量身打造</h2>
+            <p class="section-desc" data-i18n="section_features_desc">
+                从代码编辑到实时预览，从本地调试到团队协作，Code Editor 覆盖移动开发的每个环节
+            </p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card reveal reveal-delay-1">
+                <div class="feature-icon">⚡</div>
+                <h3 data-i18n="f1_title">实时 HTML 预览</h3>
+                <p data-i18n="f1_desc">边写边看，代码修改即时渲染。支持语法高亮和行号显示，让编码体验如桌面端般流畅。</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-2">
+                <div class="feature-icon">📡</div>
+                <h3 data-i18n="f2_title">本地网络分享</h3>
+                <p data-i18n="f2_desc">一键生成二维码，同 WiFi 下的设备扫码即可访问。无需上传云端，代码安全有保障。</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-3">
+                <div class="feature-icon">📱</div>
+                <h3 data-i18n="f3_title">多设备模拟</h3>
+                <p data-i18n="f3_desc">在 iPhone、iPad 和桌面视图之间自由切换，确保你的网页在任何屏幕上都完美呈现。</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-1">
+                <div class="feature-icon">🎨</div>
+                <h3 data-i18n="f4_title">模板库</h3>
+                <p data-i18n="f4_desc">内置响应式布局、登录表单、CSS 动画等精选模板，快速启动新项目，节省开发时间。</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-2">
+                <div class="feature-icon">🔧</div>
+                <h3 data-i18n="f5_title">快捷工具栏</h3>
+                <p data-i18n="f5_desc">一键插入常用 HTML 标签，支持导入导出文件，与 Files 应用无缝集成。</p>
+            </div>
+            <div class="feature-card reveal reveal-delay-3">
+                <div class="feature-icon">🌙</div>
+                <h3 data-i18n="f6_title">深色模式</h3>
+                <p data-i18n="f6_desc">完整适配 iOS 深色模式，编辑器、预览界面自动切换，保护视力，专注编码。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Showcase Section -->
+    <section class="showcase" id="showcase">
+        <div class="showcase-container">
+            <div class="showcase-row reveal">
+                <div class="showcase-visual">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 24px; padding: 40px; color: white; box-shadow: 0 24px 64px rgba(102,126,234,0.3);">
+                        <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                            <div style="width: 12px; height: 12px; background: rgba(255,255,255,0.3); border-radius: 50%;"></div>
+                            <div style="width: 12px; height: 12px; background: rgba(255,255,255,0.3); border-radius: 50%;"></div>
+                            <div style="width: 12px; height: 12px; background: rgba(255,255,255,0.3); border-radius: 50%;"></div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 24px; backdrop-filter: blur(10px);">
+                            <div style="height: 12px; background: rgba(255,255,255,0.3); border-radius: 6px; width: 60%; margin-bottom: 12px;"></div>
+                            <div style="height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; width: 90%; margin-bottom: 8px;"></div>
+                            <div style="height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; width: 75%;"></div>
+                        </div>
+                        <div style="display: flex; gap: 12px; margin-top: 24px;">
+                            <div style="flex: 1; height: 80px; background: rgba(255,255,255,0.1); border-radius: 12px;"></div>
+                            <div style="flex: 1; height: 80px; background: rgba(255,255,255,0.1); border-radius: 12px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="showcase-content">
+                    <h3 data-i18n="s1_title">实时预览，所见即所得</h3>
+                    <p data-i18n="s1_desc">
+                        在 iPhone 上编写 HTML 代码，右侧即时显示渲染效果。支持分屏编辑模式，iPad 上更能体验桌面级开发效率。
+                    </p>
+                    <ul class="showcase-list">
+                        <li><span class="check">✓</span> <span data-i18n="s1_list1">代码修改即时渲染</span></li>
+                        <li><span class="check">✓</span> <span data-i18n="s1_list2">语法高亮与行号</span></li>
+                        <li><span class="check">✓</span> <span data-i18n="s1_list3">分屏编辑模式</span></li>
+                        <li><span class="check">✓</span> <span data-i18n="s1_list4">自动保存文档</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="showcase-row reverse reveal">
+                <div class="showcase-visual">
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 24px; padding: 40px; color: white; box-shadow: 0 24px 64px rgba(245,87,108,0.3); text-align: center;">
+                        <div style="width: 160px; height: 160px; background: white; border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,0,0,0.15);">
+                            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; width: 100px; height: 100px; padding: 8px;">
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: transparent;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: transparent;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: transparent;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: transparent;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: transparent;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: transparent;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: transparent;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: transparent;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                                <div style="background: #333; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                        <div style="font-size: 18px; font-weight: 700;">扫描二维码</div>
+                        <div style="font-size: 14px; opacity: 0.8; margin-top: 8px;">同 WiFi 设备即时访问</div>
+                    </div>
+                </div>
+                <div class="showcase-content">
+                    <h3 data-i18n="s2_title">二维码分享，协作无忧</h3>
+                    <p data-i18n="s2_desc">
+                        一键生成二维码，团队成员扫码即可在浏览器中查看你的 HTML 预览。支持实时同步更新，修改代码后所有连接设备自动刷新。
+                    </p>
+                    <ul class="showcase-list">
+                        <li><span class="check">✓</span> <span data-i18n="s2_list1">一键生成二维码</span></li>
+                        <li><span class="check">✓</span> <span data-i18n="s2_list2">同 WiFi 即时访问</span></li>
+                        <li><span class="check">✓</span> <span data-i18n="s2_list3">多设备实时同步</span></li>
+                        <li><span class="check">✓</span> <span data-i18n="s2_list4">隐私安全，不上传云端</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download" id="download">
+        <div class="download-bg"></div>
+        <div class="download-bg-2"></div>
+        <div class="download-container reveal">
+            <h2 data-i18n="download_title">开始你的移动开发之旅</h2>
+            <p data-i18n="download_desc">免费下载 Code Editor，在 iPhone 和 iPad 上体验专业级 HTML 预览与分享功能。</p>
+            <div class="download-buttons">
+                <a href="https://apps.apple.com/app/id6764022927" class="btn-appstore" target="_blank">
+                    <span class="icon">🍎</span>
+                    <span class="text">
+                        <small>Download on the</small>
+                        <strong>App Store</strong>
+                    </span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#hero" class="logo">
+                        <div class="logo-icon"><img src="pic/logo@1x.png" alt="Logo"></div>
+                        <span data-i18n="app_name">Code Editor</span>
+                    </a>
+                    <p data-i18n="footer_desc">iOS 端专业的 HTML 编辑预览与分享工具，让移动开发更高效、更便捷。</p>
+                </div>
+                <div class="footer-links">
+                    <h4 data-i18n="footer_product">产品</h4>
+                    <ul>
+                        <li><a href="#features" data-i18n="nav_features">功能特性</a></li>
+                        <li><a href="#showcase" data-i18n="nav_showcase">产品展示</a></li>
+                        <li><a href="#download" data-i18n="nav_download">下载应用</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4 data-i18n="footer_support">支持</h4>
+                    <ul>
+                        <li><a href="https://page.niceapp.eu.cc/index.php/archives/13.html" target="_blank" data-i18n="footer_guide">使用指南</a></li>
+                        <li><a href="https://page.weburl.cloudns.be/index.php/archives/13.html" target="_blank" data-i18n="footer_cs">在线客服</a></li>
+                        <li><a href="https://page.niceapp.eu.cc/index.php/archives/13.html" target="_blank" data-i18n="footer_faq">常见问题</a></li>
+                        <li><a href="mailto:fengezhao@hotmail.com" data-i18n="footer_feedback">反馈建议</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4 data-i18n="footer_about">关于</h4>
+                    <ul>
+                        <li><a href="https://page.niceapp.eu.cc/index.php/archives/Privacy-Policy.html" target="_blank" data-i18n="footer_privacy">隐私政策</a></li>
+                        <li><a href="https://page.niceapp.eu.cc/index.php/archives/User-Service-Agreement.html" target="_blank" data-i18n="footer_terms">服务条款</a></li>
+                        <li><a href="mailto:fengezhao@hotmail.com" data-i18n="footer_contact">联系我们</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p data-i18n="footer_copyright">© 2026 Code Editor. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="mailto:fengezhao@hotmail.com" title="Email">📧</a>
+                    <a href="https://page.niceapp.eu.cc/index.php/archives/13.html" title="Customer Service" target="_blank">💬</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- i18n Data ---
+        const translations = {
+            en: {
+                title: "Code Editor – HTML & Preview",
+                app_name: "Code Editor",
+                nav_features: "Features",
+                nav_showcase: "Showcase",
+                nav_download: "Download",
+                nav_cta: "Free Download",
+                hero_badge: "iOS 17+ Developer Tool",
+                hero_title: 'Real-time <span class="gradient-text">HTML Preview</span> on iPhone',
+                hero_desc: "Professional mobile HTML editing & preview tool. Real-time rendering, device simulation, and QR sharing.",
+                stat_realtime: "Real-time",
+                stat_instant: "Instant Preview",
+                stat_local: "Local",
+                stat_secure: "Secure Sharing",
+                stat_multi: "Multi-device",
+                stat_cross: "Cross-screen",
+                hero_btn_download: "Free Download",
+                hero_btn_more: "Learn More",
+                scan_to_preview: "Scan to Preview",
+                section_features_tag: "Core Features",
+                section_features_title: "Built for Developers",
+                section_features_desc: "From editing to preview, Code Editor covers every step of mobile development.",
+                f1_title: "Real-time HTML Preview",
+                f1_desc: "Write code and see results instantly. Support for syntax highlighting and line numbers.",
+                f2_title: "Local Network Sharing",
+                f2_desc: "One-tap QR code generation for local WiFi sharing. No cloud upload, secure and private.",
+                f3_title: "Multi-device Simulation",
+                f3_desc: "Switch between iPhone, iPad, and desktop views to ensure perfect rendering.",
+                f4_title: "Template Library",
+                f4_desc: "Built-in responsive layouts and animations to jumpstart your projects and save time.",
+                f5_title: "Quick Toolbar",
+                f5_desc: "One-tap insertion of common tags and seamless integration with the Files app.",
+                f6_title: "Dark Mode",
+                f6_desc: "Full iOS Dark Mode support to protect your eyes and focus on coding.",
+                s1_title: "Live Preview, WYSIWYG",
+                s1_desc: "Edit HTML on iPhone with instant rendering. Split-screen mode on iPad for desktop-class efficiency.",
+                s1_list1: "Real-time rendering",
+                s1_list2: "Syntax highlight & line numbers",
+                s1_list3: "Split-screen editing",
+                s1_list4: "Auto-save documents",
+                s2_title: "QR Sharing, Seamless Collaboration",
+                s2_desc: "Generate QR codes for team members to view in their browsers. Real-time sync across devices.",
+                s2_list1: "One-tap QR generation",
+                s2_list2: "Local WiFi access",
+                s2_list3: "Multi-device sync",
+                s2_list4: "Private & Secure",
+                download_title: "Start Your Mobile Development Journey",
+                download_desc: "Download Code Editor for free and experience professional HTML preview on iPhone and iPad.",
+                footer_desc: "Professional iOS HTML editing and preview tool. Making mobile development faster and easier.",
+                footer_product: "Product",
+                footer_support: "Support",
+                footer_about: "About",
+                footer_guide: "Guide",
+                footer_faq: "FAQ",
+                footer_feedback: "Feedback",
+                footer_privacy: "Privacy Policy",
+                footer_terms: "Terms of Service",
+                footer_contact: "Contact Us",
+                footer_cs: "Online Support",
+                footer_copyright: "© 2026 Code Editor. All rights reserved."
+            },
+            zh: {
+                title: "Code Editor – HTML & Preview",
+                app_name: "Code Editor",
+                nav_features: "功能特性",
+                nav_showcase: "产品展示",
+                nav_download: "立即下载",
+                nav_cta: "免费下载",
+                hero_badge: "iOS 17+ 专属开发工具",
+                hero_title: '在 iPhone 上<br><span class="gradient-text">实时预览 HTML</span>',
+                hero_desc: "专为开发者打造的移动端 HTML 编辑与预览分享工具。支持实时预览、多设备模拟、二维码分享，让移动开发更高效。",
+                stat_realtime: "实时",
+                stat_instant: "即时预览",
+                stat_local: "本地",
+                stat_secure: "安全分享",
+                stat_multi: "多设备",
+                stat_cross: "跨屏预览",
+                hero_btn_download: "免费下载",
+                hero_btn_more: "了解更多",
+                scan_to_preview: "扫码预览",
+                section_features_tag: "核心功能",
+                section_features_title: "为开发者量身打造",
+                section_features_desc: "从代码编辑到实时预览，从本地调试到团队协作，Code Editor 覆盖移动开发的每个环节",
+                f1_title: "实时 HTML 预览",
+                f1_desc: "边写边看，代码修改即时渲染。支持语法高亮和行号显示，让编码体验如桌面端般流畅。",
+                f2_title: "本地网络分享",
+                f2_desc: "一键生成二维码，同 WiFi 下的设备扫码即可访问。无需上传云端，代码安全有保障。",
+                f3_title: "多设备模拟",
+                f3_desc: "在 iPhone、iPad 和桌面视图之间自由切换，确保你的网页在任何屏幕上都完美呈现。",
+                f4_title: "模板库",
+                f4_desc: "内置响应式布局、登录表单、CSS 动画等精选模板，快速启动新项目，节省开发时间。",
+                f5_title: "快捷工具栏",
+                f5_desc: "一键插入常用 HTML 标签，支持导入导出文件，与 Files 应用无缝集成。",
+                f6_title: "深色模式",
+                f6_desc: "完整适配 iOS 深色模式，编辑器、预览界面自动切换，保护视力，专注编码。",
+                s1_title: "实时预览，所见即所得",
+                s1_desc: "在 iPhone 上编写 HTML 代码，右侧即时显示渲染效果。支持分屏编辑模式，iPad 上效率更高。",
+                s1_list1: "代码修改即时渲染",
+                s1_list2: "语法高亮与行号",
+                s1_list3: "分屏编辑模式",
+                s1_list4: "自动保存文档",
+                s2_title: "二维码分享，协作无忧",
+                s2_desc: "一键生成二维码，团队成员扫码即可在浏览器中查看你的 HTML 预览。支持多设备实时同步更新。",
+                s2_list1: "一键生成二维码",
+                s2_list2: "同 WiFi 即时访问",
+                s2_list3: "多设备实时同步",
+                s2_list4: "隐私安全，不上传云端",
+                download_title: "开始你的移动开发之旅",
+                download_desc: "免费下载 Code Editor，在 iPhone 和 iPad 上体验专业级 HTML 预览与分享功能。",
+                footer_desc: "iOS 端专业的 HTML 编辑预览与分享工具，让移动开发更高效、更便捷。",
+                footer_product: "产品",
+                footer_support: "支持",
+                footer_about: "关于",
+                footer_guide: "使用指南",
+                footer_faq: "常见问题",
+                footer_feedback: "反馈建议",
+                footer_privacy: "隐私政策",
+                footer_terms: "服务条款",
+                footer_contact: "联系我们",
+                footer_cs: "在线客服",
+                footer_copyright: "© 2026 Code Editor. All rights reserved."
+            },
+            ja: {
+                title: "Code Editor – HTML & Preview",
+                app_name: "Code Editor",
+                nav_features: "特徴",
+                nav_showcase: "ショーケース",
+                nav_download: "ダウンロード",
+                nav_cta: "無料ダウンロード",
+                hero_badge: "iOS 17+ 開発者ツール",
+                hero_title: 'iPhoneで<br><span class="gradient-text">リアルタイムHTMLプレビュー</span>',
+                hero_desc: "開発者のためのプロフェッショナルなモバイルHTML編集およびプレビューツール。リアルタイムレンダリング、デバイスシミュレーション、QR共有をサポート。",
+                stat_realtime: "リアルタイム",
+                stat_instant: "即時プレビュー",
+                stat_local: "ローカル",
+                stat_secure: "安全な共有",
+                stat_multi: "多デバイス",
+                stat_cross: "クロスプレビュー",
+                hero_btn_download: "無料ダウンロード",
+                hero_btn_more: "詳細はこちら",
+                scan_to_preview: "スキャンしてプレビュー",
+                section_features_tag: "コア機能",
+                section_features_title: "開発者のために設計",
+                section_features_desc: "編集からプレビューまで、Code Editorはモバイル開発のあらゆるステップをカバーします。",
+                f1_title: "リアルタイムHTMLプレビュー",
+                f1_desc: "コードを書いてすぐに結果を確認。構文の強調表示と行番号をサポートし、スムーズなコーディング体験を提供。",
+                f2_title: "ローカルネットワーク共有",
+                f2_desc: "ローカルWiFi共有用の一タップQRコード生成。クラウドへのアップロードなし、安全でプライベート。",
+                f3_title: "多デバイスシミュレーション",
+                f3_desc: "iPhone、iPad、デスクトップビューを切り替えて、あらゆる画面で完璧なレンダリングを確認。",
+                f4_title: "テンプレートライブラリ",
+                f4_desc: "レスポンシブレイアウトやアニメーションが組み込まれており、プロジェクトを素早く開始し時間を節約。",
+                f5_title: "クイックツールバー",
+                f5_desc: "一般的なタグを一タップで挿入し、Filesアプリとシームレスに統合。ファイルのインポート/エクスポートも簡単。",
+                f6_title: "ダークモード",
+                f6_desc: "目を保護しコーディングに集中できるよう、iOSダークモードを完全にサポート。エディタもプレビューも自動切替。",
+                s1_title: "リアルタイムプレビュー、WYSIWYG",
+                s1_desc: "iPhoneでHTMLを編集し、即座にレンダリング。iPadの分割画面モードでデスクトップ級の効率を実現。",
+                s1_list1: "コード変更を即時レンダリング",
+                s1_list2: "構文強調表示と行番号",
+                s1_list3: "分割画面編集モード",
+                s1_list4: "ドキュメントの自動保存",
+                s2_title: "QR共有、シームレスなコラボレーション",
+                s2_desc: "チームメンバーがブラウザで表示できるQRコードを生成。デバイス間でリアルタイムに同期更新可能。",
+                s2_list1: "一タップでQRコード生成",
+                s2_list2: "ローカルWiFiで即時アクセス",
+                s2_list3: "複数デバイスのリアルタイム同期",
+                s2_list4: "プライバシー保護、クラウド不要",
+                download_title: "モバイル開発の旅を始めよう",
+                download_desc: "Code Editorを無料でダウンロードして、iPhoneとiPadでプロフェッショナルなHTMLプレビューを体験。",
+                footer_desc: "プロフェッショナルなiOS HTML編集およびプレビューツール。モバイル開発をより速く、より簡単に。",
+                footer_product: "製品",
+                footer_support: "サポート",
+                footer_about: "会社概要",
+                footer_guide: "ガイド",
+                footer_faq: "FAQ",
+                footer_feedback: "フィードバック",
+                footer_privacy: "プライバシーポリシー",
+                footer_terms: "利用規約",
+                footer_contact: "お問い合わせ",
+                footer_cs: "オンラインサポート",
+                footer_copyright: "© 2026 Code Editor. All rights reserved."
+            },
+            ko: {
+                title: "Code Editor – HTML & Preview",
+                app_name: "Code Editor",
+                nav_features: "기능",
+                nav_showcase: "쇼케이스",
+                nav_download: "다운로드",
+                nav_cta: "무료 다운로드",
+                hero_badge: "iOS 17+ 개발자 도구",
+                hero_title: 'iPhone에서<br><span class="gradient-text">실시간 HTML 미리보기</span>',
+                hero_desc: "개발자를 위한 전문적인 모바일 HTML 편집 및 미리보기 도구. 실시간 렌더링, 장치 시뮬레이션 및 QR 공유를 지원합니다.",
+                stat_realtime: "실시간",
+                stat_instant: "즉시 미리보기",
+                stat_local: "로컬",
+                stat_secure: "안전한 공유",
+                stat_multi: "다중 장치",
+                stat_cross: "크로스 미리보기",
+                hero_btn_download: "무료 다운로드",
+                hero_btn_more: "자세히 알아보기",
+                scan_to_preview: "스캔하여 미리보기",
+                section_features_tag: "핵심 기능",
+                section_features_title: "개발자를 위해 설계됨",
+                section_features_desc: "편집부터 미리보기까지 Code Editor는 모바일 개발의 모든 단계를 다룹니다.",
+                f1_title: "실시간 HTML 미리보기",
+                f1_desc: "코드를 작성하고 결과를 즉시 확인하십시오. 구문 강조 및 줄 번호를 지원하여 원활한 코딩 환경을 제공합니다.",
+                f2_title: "로컬 네트워크 공유",
+                f2_desc: "로컬 WiFi 공유를 위한 원터치 QR 코드 생성. 클라우드 업로드 없음, 안전하고 비공개.",
+                f3_title: "다중 장치 시뮬레이션",
+                f3_desc: "iPhone, iPad 및 데스크탑 뷰 사이를 전환하여 모든 화면에서 완벽한 렌더링을 보장합니다.",
+                f4_title: "템플릿 라이브러리",
+                f4_desc: "프로젝트를 빠르게 시작하고 시간을 절약할 수 있도록 반응형 레이아웃과 애니메이션이 내장되어 있습니다.",
+                f5_title: "빠른 도구 모음",
+                f5_desc: "일반적인 태그를 원터치로 삽입하고 Files 앱과 원활하게 통합됩니다. 파일 가져오기/내보내기 지원.",
+                f6_title: "다크 모드",
+                f6_desc: "눈을 보호하고 코딩에 집중할 수 있도록 iOS 다크 모드를 완벽하게 지원합니다. 편집기와 미리보기가 자동 전환됩니다.",
+                s1_title: "실시간 미리보기, WYSIWYG",
+                s1_desc: "iPhone에서 실시간 렌더링으로 HTML을 편집하십시오. 데스크탑급 효율성을 위한 iPad의 분할 화면 모드.",
+                s1_list1: "코드 변경 사항 실시간 렌더링",
+                s1_list2: "구문 강조 및 줄 번호",
+                s1_list3: "분할 화면 편집 모드",
+                s1_list4: "문서 자동 저장",
+                s2_title: "QR 공유, 원활한 협업",
+                s2_desc: "팀원이 브라우저에서 볼 수 있도록 QR 코드를 생성합니다. 장치 간 실시간 동기화 업데이트를 지원합니다.",
+                s2_list1: "원터치 QR 코드 생성",
+                s2_list2: "로컬 WiFi 즉시 액세스",
+                s2_list3: "다중 장치 실시간 동기화",
+                s2_list4: "개인 정보 보호, 클라우드 불필요",
+                download_title: "모바일 개발 여정을 시작하세요",
+                download_desc: "Code Editor를 무료로 다운로드하고 iPhone 및 iPad에서 전문적인 HTML 미리보기를 경험하십시오.",
+                footer_desc: "전문적인 iOS HTML 편집 및 미리보기 도구. 모바일 개발을 더 빠르고 쉽게 만듭니다.",
+                footer_product: "제품",
+                footer_support: "지원",
+                footer_about: "정보",
+                footer_guide: "가이드",
+                footer_faq: "FAQ",
+                footer_feedback: "피드백",
+                footer_privacy: "개인정보 처리방침",
+                footer_terms: "서비스 약관",
+                footer_contact: "문의하기",
+                footer_cs: "온라인 지원",
+                footer_copyright: "© 2026 Code Editor. All rights reserved."
+            }
+        };
+
+        const langBtn = document.getElementById('lang-btn');
+        const langDropdown = document.getElementById('lang-dropdown');
+        const currentLangSpan = document.getElementById('current-lang');
+        const langOptions = document.querySelectorAll('.lang-option');
+
+        // Toggle dropdown
+        langBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langDropdown.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', () => {
+            langDropdown.classList.remove('show');
+        });
+
+        // Set Language
+        function setLanguage(lang) {
+            if (!translations[lang]) lang = 'en';
+            
+            // Save to localStorage
+            localStorage.setItem('preferred-lang', lang);
+            
+            // Update HTML lang attribute
+            document.documentElement.lang = lang;
+            
+            // Update UI text
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    el.innerHTML = translations[lang][key];
+                }
+            });
+            
+            // Update page title
+            document.title = translations[lang].title;
+            
+            // Update active state in dropdown
+            langOptions.forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.getAttribute('data-lang') === lang) {
+                    opt.classList.add('active');
+                    currentLangSpan.textContent = opt.textContent;
+                }
+            });
+        }
+
+        // Language Option Clicks
+        langOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                const lang = opt.getAttribute('data-lang');
+                setLanguage(lang);
+                langDropdown.classList.remove('show');
+            });
+        });
+
+        // Detect Language
+        function detectLanguage() {
+            const savedLang = localStorage.getItem('preferred-lang');
+            if (savedLang && translations[savedLang]) return savedLang;
+            
+            const browserLang = navigator.language.split('-')[0];
+            if (translations[browserLang]) return browserLang;
+            
+            return 'en'; // Fallback
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setLanguage(detectLanguage());
+        });
+
+        // --- Original Scripts ---
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Scroll reveal animation
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                const target = document.querySelector(targetId);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.querySelector('.nav-links');
+        if (mobileMenuBtn && navLinks) {
+            mobileMenuBtn.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+                mobileMenuBtn.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
+            });
+
+            // Close menu when a link is clicked
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('active');
+                    mobileMenuBtn.textContent = '☰';
+                });
+            });
+        }
+    </script>
+</body>
+</html>

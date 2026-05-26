@@ -1,0 +1,28 @@
+===========================================
+生产环境部署说明
+===========================================
+
+1. 上传所有文件到服务器根目录
+   目标: https://html.weburl.cloudns.be 绑定的目录
+
+2. 编辑 .env 文件
+   填入真实的数据库配置信息
+
+3. 设置权限
+   chmod 755 *.php
+   chmod 755 -R api/
+   chmod 755 -R database/
+   chmod 777 pub/
+   chmod 600 .env
+
+4. 导入数据库
+   mysql -u user -p database_name < schema.sql
+
+5. 测试
+   curl https://html.weburl.cloudns.be/test_publish.php
+
+6. 验证
+   - 访问 https://html.weburl.cloudns.be/test_publish.php
+   - 在iOS应用中测试发布功能
+
+===========================================

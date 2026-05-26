@@ -1,0 +1,35 @@
+# Docker Build Context 排除文件
+# 加速构建，减小镜像体积
+
+# Node modules (if any)
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Docker 自身
+docker/
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 日志
+*.log
+log/
+
+# 临时文件
+*.tmp
+*.bak
+
+# iOS 源代码（不打包到后端镜像）
+ios/
