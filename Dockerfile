@@ -4,7 +4,7 @@ FROM php:8.3-fpm-alpine
 
 LABEL description="HTML Code Editor - Cloud Publishing Backend"
 
-# 安装系统依赖
+# 安装系统依赖 + PHP扩展编译依赖
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -13,6 +13,7 @@ RUN apk add --no-cache \
     bash \
     curl \
     tzdata \
+    oniguruma-dev \
     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone
 
