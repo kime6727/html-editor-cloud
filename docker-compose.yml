@@ -35,14 +35,8 @@ services:
       - app-internal
       - dokploy-network
     depends_on:
-      db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/ping.php"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
+      - db
+    # entrypoint.sh 内置 MySQL 等待逻辑和健康检查
 
   # =============================================
   # MySQL 8.4 数据库服务（内网，不暴露端口）
@@ -60,12 +54,6 @@ services:
       - ./deploy_package/database/init_mysql84.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     networks:
       - app-internal
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD --silent 2>/dev/null"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
