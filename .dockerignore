@@ -17,8 +17,7 @@ node_modules/
 # macOS
 .DS_Store
 
-# Docker 自身
-docker/
+# Docker 根目录的构建文件（不打包进镜像）
 Dockerfile
 docker-compose.yml
 .dockerignore
