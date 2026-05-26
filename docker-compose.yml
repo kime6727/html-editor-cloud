@@ -9,10 +9,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: html-editor-app
     restart: unless-stopped
-    ports:
-      - "80:80"
     environment:
       # 数据库配置
       DB_HOST: db
@@ -32,12 +29,11 @@ services:
       # Cron 密钥
       CRON_SECRET_KEY: ${CRON_SECRET_KEY:-expire_cron_2024_secret}
     volumes:
-      # 持久化 pub 目录（用户发布的 HTML 文件、备份文件）
       - pub_data:/var/www/html/pub
-      # 持久化日志
       - app_logs:/var/log/nginx
     networks:
-      - app-network
+      - app-internal
+      - dokploy-network
     depends_on:
       db:
         condition: service_healthy
@@ -49,27 +45,21 @@ services:
       start_period: 20s
 
   # =============================================
-  # MySQL 8.4 数据库服务
+  # MySQL 8.4 数据库服务（内网，不暴露端口）
   # =============================================
   db:
     image: mysql:8.4
-    container_name: html-editor-db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-RootP@ssw0rd!2024}
       MYSQL_DATABASE: html_editor
       MYSQL_USER: html_editor
       MYSQL_PASSWORD: ${DB_PASS:-StrongP@ssw0rd!2024}
-    ports:
-      # 调试用，生产环境建议注释掉
-      - "3306:3306"
     volumes:
-      # 持久化数据库数据
       - mysql_data:/var/lib/mysql
-      # 初始化脚本（首次启动时自动执行）
       - ./deploy_package/database/init_mysql84.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     networks:
-      - app-network
+      - app-internal
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "html_editor", "-p${DB_PASS:-StrongP@ssw0rd!2024}"]
       interval: 10s
@@ -85,7 +75,7 @@ services:
       - --default-authentication-plugin=mysql_native_password
 
 # =============================================
-# 持久化存储卷
+# 持久化存储
 # =============================================
 volumes:
   pub_data:
@@ -102,6 +92,7 @@ volumes:
 # 网络
 # =============================================
 networks:
-  app-network:
-    name: html-editor-network
+  app-internal:
     driver: bridge
+  dokploy-network:
+    external: true
