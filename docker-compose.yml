@@ -32,10 +32,11 @@ services:
       - pub_data:/var/www/html/pub
       - app_logs:/var/log/nginx
     networks:
-      - app-internal
+      - default
       - dokploy-network
     depends_on:
-      - db
+      db:
+        condition: service_started
     # entrypoint.sh 内置 MySQL 等待逻辑和健康检查
 
   # =============================================
@@ -53,7 +54,7 @@ services:
       - mysql_data:/var/lib/mysql
       - ./deploy_package/database/init_mysql84.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     networks:
-      - app-internal
+      - default
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
@@ -80,7 +81,7 @@ volumes:
 # 网络
 # =============================================
 networks:
-  app-internal:
+  default:
     driver: bridge
   dokploy-network:
     external: true
