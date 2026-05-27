@@ -53,9 +53,6 @@ RUN mkdir -p /var/www/html/pub \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/pub
 
-# 清理
-RUN rm -f /etc/nginx/http.d/default.conf 2>/dev/null || true
-
 EXPOSE 80
 
 ENTRYPOINT ["/entrypoint.sh"]
