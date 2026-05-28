@@ -23,6 +23,7 @@ services:
       HMAC_SECRET_KEY: ${HMAC_SECRET_KEY:-zheshimiyao112233}
       DEBUG: "false"
       CRON_SECRET_KEY: ${CRON_SECRET_KEY:-expire_cron_2024_secret}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-RootP@ssw0rd!2024}
     volumes:
       - pub_data:/var/www/html/pub
       - app_logs:/var/log/nginx

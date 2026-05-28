@@ -81,32 +81,25 @@ chown -R www-data:www-data /var/www/html/pub
 chmod -R 755 /var/www/html/pub
 
 # =============================================
-# 等待 MySQL 就绪
+# 等待 MySQL 就绪（用 root 检查，无需等业务用户创建）
 # =============================================
 echo "==> Waiting for MySQL to be ready..."
-MAX_RETRIES=30
+MYSQL_ROOT_PASS="${MYSQL_ROOT_PASSWORD:-RootP@ssw0rd!2024}"
+MAX_RETRIES=60
 RETRY_COUNT=0
 
-while ! mysqladmin ping -h "${DB_HOST:-db}" -u "${DB_USER:-html_editor}" -p"${DB_PASS:-change_me_in_production}" --silent 2>/dev/null; do
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-        echo "==> WARNING: MySQL not ready after $MAX_RETRIES attempts, starting anyway..."
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if mysqladmin ping -h "${DB_HOST:-db}" -u root -p"${MYSQL_ROOT_PASS}" --silent 2>/dev/null; then
+        echo "==> MySQL is ready! (attempt $RETRY_COUNT)"
         break
     fi
-    echo "==> MySQL not ready yet (attempt $RETRY_COUNT/$MAX_RETRIES)..."
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    echo "==> Waiting for MySQL... ($RETRY_COUNT/$MAX_RETRIES)"
     sleep 2
 done
 
-if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-    echo "==> MySQL is ready!"
-    
-    # 初始化数据库（幂等操作）
-    echo "==> Running database initialization..."
-    if [ -f /var/www/html/database/init_mysql84.sql ]; then
-        mysql -h "${DB_HOST:-db}" -u "${DB_USER:-html_editor}" -p"${DB_PASS:-change_me_in_production}" \
-            "${DB_NAME:-html_editor}" < /var/www/html/database/init_mysql84.sql 2>/dev/null || true
-        echo "==> Database initialization completed"
-    fi
+if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+    echo "==> WARNING: MySQL not ready after ${MAX_RETRIES}s, starting anyway..."
 fi
 
 # =============================================
