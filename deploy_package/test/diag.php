@@ -74,3 +74,17 @@ if ($fp) {
 } else {
     echo "❌ $host:$port 不可达 (errno=$errno, errstr=$errstr)\n";
 }
+
+echo "\n=== /etc/resolv.conf ===\n";
+if (file_exists('/etc/resolv.conf')) {
+    echo file_get_contents('/etc/resolv.conf');
+} else {
+    echo "文件不存在\n";
+}
+
+echo "\n=== /etc/hosts ===\n";
+if (file_exists('/etc/hosts')) {
+    echo file_get_contents('/etc/hosts');
+} else {
+    echo "文件不存在\n";
+}

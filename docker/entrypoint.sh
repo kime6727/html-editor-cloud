@@ -10,6 +10,32 @@ CRON_FILE="/tmp/crontab.txt"
 echo "==> HTML Code Editor Entrypoint Starting..."
 
 # =============================================
+# 修复 Docker DNS 解析
+# =============================================
+echo "==> Configuring Docker DNS..."
+cat > /etc/resolv.conf << 'DNS_EOF'
+nameserver 127.0.0.11
+options ndots:0
+DNS_EOF
+echo "==> /etc/resolv.conf updated"
+
+echo "==> Testing db resolution..."
+sleep 2
+if getent hosts db > /dev/null 2>&1; then
+    DB_IP=$(getent hosts db | awk '{print $1}')
+    echo "==> db resolved to: $DB_IP"
+else
+    echo "==> WARNING: db not resolving yet, will retry..."
+    for i in $(seq 1 10); do
+        sleep 3
+        if getent hosts db > /dev/null 2>&1; then
+            echo "==> db resolved on retry $i: $(getent hosts db | awk '{print $1}')"
+            break
+        fi
+    done
+fi
+
+# =============================================
 # 生成 .env 配置文件
 # =============================================
 echo "==> Generating .env from environment variables..."
