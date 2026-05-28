@@ -29,6 +29,7 @@ services:
       - app_logs:/var/log/nginx
     networks:
       - default
+      - dokploy-network
     extra_hosts:
       - "db:172.30.0.10"
     depends_on:
@@ -83,3 +84,5 @@ networks:
     ipam:
       config:
         - subnet: 172.30.0.0/16
+  dokploy-network:
+    external: true
