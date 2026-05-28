@@ -33,14 +33,13 @@ services:
     extra_hosts:
       - "db:172.30.0.10"
     depends_on:
-      db:
-        condition: service_started
+      - db
 
   # =============================================
   # MySQL 8.4 数据库服务（固定IP，不暴露端口）
   # =============================================
   db:
-    image: mysql:8.4
+    image: mysql:8.0
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-RootP@ssw0rd!2024}
@@ -59,7 +58,6 @@ services:
       - --max_allowed_packet=64M
       - --innodb_buffer_pool_size=128M
       - --innodb_log_file_size=64M
-      - --default-authentication-plugin=mysql_native_password
 
 # =============================================
 # 持久化存储
