@@ -11,36 +11,32 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      # 数据库配置
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: html_editor
       DB_USER: html_editor
       DB_PASS: ${DB_PASS:-StrongP@ssw0rd!2024}
       DB_CHARSET: utf8mb4
-      # 管理员账号
       ADMIN_USER: ${ADMIN_USER:-admin}
       ADMIN_PASS: ${ADMIN_PASS:-admin123admin123}
-      # API 密钥（生产环境务必修改）
       PUBLISH_API_KEY: ${PUBLISH_API_KEY:-zheshimiyao112233}
       HMAC_SECRET_KEY: ${HMAC_SECRET_KEY:-zheshimiyao112233}
-      # 调试模式
       DEBUG: "false"
-      # Cron 密钥
       CRON_SECRET_KEY: ${CRON_SECRET_KEY:-expire_cron_2024_secret}
     volumes:
       - pub_data:/var/www/html/pub
       - app_logs:/var/log/nginx
     networks:
-      - default
-      - dokploy-network
+      default:
+      dokploy-network:
+    extra_hosts:
+      - "db:172.30.0.10"
     depends_on:
       db:
         condition: service_started
-    # entrypoint.sh 内置 MySQL 等待逻辑和健康检查
 
   # =============================================
-  # MySQL 8.4 数据库服务（内网，不暴露端口）
+  # MySQL 8.4 数据库服务（固定IP，不暴露端口）
   # =============================================
   db:
     image: mysql:8.4
@@ -54,7 +50,8 @@ services:
       - mysql_data:/var/lib/mysql
       - ./deploy_package/database/init_mysql84.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     networks:
-      - default
+      default:
+        ipv4_address: 172.30.0.10
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
@@ -78,10 +75,13 @@ volumes:
     driver: local
 
 # =============================================
-# 网络
+# 网络 — 固定 IP 段绕过 Alpine musl DNS 问题
 # =============================================
 networks:
   default:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
   dokploy-network:
     external: true
