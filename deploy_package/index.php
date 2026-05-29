@@ -296,39 +296,6 @@ function showPasswordPrompt($projectId, $errorMessage = null) {
     exit;
 }
 
-function anonymizeIP($ip) {
-    $salt = '';
-    $envPath = __DIR__ . '/.env';
-    if (file_exists($envPath)) {
-        $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            if (strpos(trim($line), 'IP_SALT=') === 0) {
-                $salt = trim(explode('=', $line, 2)[1]);
-                break;
-            }
-        }
-    }
-    if (empty($salt)) $salt = 'html_editor_default_salt';
-    
-    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-        $parts = explode('.', $ip);
-        return [
-            'anonymized' => $parts[0] . '.' . $parts[1] . '.0.0',
-            'hash' => substr(hash('sha256', $ip . $salt), 0, 16)
-        ];
-    }
-    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-        return [
-            'anonymized' => substr($ip, 0, strrpos($ip, ':')) . ':****',
-            'hash' => substr(hash('sha256', $ip . $salt), 0, 16)
-        ];
-    }
-    return [
-        'anonymized' => $ip,
-        'hash' => substr(hash('sha256', $ip . $salt), 0, 16)
-    ];
-}
-
 function recordVisit($db, $projectId) {
     try {
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
