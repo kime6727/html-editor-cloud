@@ -10,7 +10,7 @@
 	<dict>
 		<key>NSExceptionDomains</key>
 		<dict>
-			<key>html.weburl.cloudns.be</key>
+			<key>html.niceapp.eu.cc</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
