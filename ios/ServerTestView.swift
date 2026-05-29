@@ -535,6 +535,13 @@ struct ServerTestView: View {
                             updateTestStatus(index: index, status: .error, detail: "Error: \(msg)")
                         }
                     }
+                } else if httpResponse.statusCode == 404 {
+                    let respStr = String(data: data, encoding: .utf8) ?? ""
+                    if respStr.contains("not found") || respStr.contains("does not exist") {
+                        updateTestStatus(index: index, status: .success, detail: "Delete API working (test ID not found, expected)")
+                    } else {
+                        updateTestStatus(index: index, status: .error, detail: "HTTP 404: \(respStr)")
+                    }
                 } else {
                     updateTestStatus(index: index, status: .error, detail: "HTTP \(httpResponse.statusCode): \(respStr)")
                 }
@@ -589,6 +596,13 @@ struct ServerTestView: View {
                             updateTestStatus(index: index, status: .error, detail: "Error: \(msg)")
                         }
                     }
+                } else if httpResponse.statusCode == 404 {
+                    let respStr = String(data: data, encoding: .utf8) ?? ""
+                    if respStr.contains("not found") || respStr.contains("does not exist") {
+                        updateTestStatus(index: index, status: .success, detail: "Update Expiry API working (test ID not found, expected)")
+                    } else {
+                        updateTestStatus(index: index, status: .error, detail: "HTTP 404: \(respStr)")
+                    }
                 } else {
                     updateTestStatus(index: index, status: .error, detail: "HTTP \(httpResponse.statusCode): \(respStr)")
                 }
@@ -626,6 +640,13 @@ struct ServerTestView: View {
                 
                 if httpResponse.statusCode == 200 {
                     updateTestStatus(index: index, status: .success, detail: "Verify Password API reachable")
+                } else if httpResponse.statusCode == 404 {
+                    let respStr = String(data: data, encoding: .utf8) ?? ""
+                    if respStr.contains("not found") || respStr.contains("不存在") {
+                        updateTestStatus(index: index, status: .success, detail: "Verify Password API reachable (test ID not found, expected)")
+                    } else {
+                        updateTestStatus(index: index, status: .error, detail: "HTTP 404: \(respStr)")
+                    }
                 } else {
                     updateTestStatus(index: index, status: .error, detail: "HTTP \(httpResponse.statusCode): \(respStr)")
                 }
@@ -661,6 +682,13 @@ struct ServerTestView: View {
                 
                 if httpResponse.statusCode == 200 {
                     updateTestStatus(index: index, status: .success, detail: "Stats API reachable")
+                } else if httpResponse.statusCode == 404 {
+                    let respStr = String(data: data, encoding: .utf8) ?? ""
+                    if respStr.contains("not found") || respStr.contains("does not exist") {
+                        updateTestStatus(index: index, status: .success, detail: "Stats API reachable (test ID not found, expected)")
+                    } else {
+                        updateTestStatus(index: index, status: .error, detail: "HTTP 404: \(respStr.prefix(200))")
+                    }
                 } else {
                     updateTestStatus(index: index, status: .error, detail: "HTTP \(httpResponse.statusCode): \(respStr.prefix(200))")
                 }

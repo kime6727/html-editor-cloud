@@ -33,8 +33,8 @@ $env = loadEnv(__DIR__ . '/../.env');
 
 // HMAC-SHA256 签名验证
 $api_key = $_SERVER['HTTP_X_API_KEY'] ?? '';
-$timestamp = $_SERVER['HTTP_X_TIMESTAMP'] ?? '';
-$signature = $_SERVER['HTTP_X_SIGNATURE'] ?? '';
+$timestamp = $_SERVER['HTTP_X_TIMESTAMP'] ?? $_GET['timestamp'] ?? '';
+$signature = $_SERVER['HTTP_X_SIGNATURE'] ?? $_GET['signature'] ?? '';
 
 $config_api_keys = [$env['PUBLISH_API_KEY'] ?? ''];
 

@@ -312,6 +312,13 @@ if ($isMultipart) {
     // 如果是更新，尝试从备份恢复（可能是之前过期的项目）
     restoreFromBackup($targetPath);
 
+    // 处理 JSON 格式的 HMAC 测试请求（无实际文件上传）
+    if (!$isMultipartCheck && isset($requestData) && ($requestData['action'] ?? '') === 'test') {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Missing files']);
+        exit;
+    }
+
     // 先写入临时目录，成功后再原子替换
     if (is_dir($stagingPath)) safeDeleteDir($stagingPath);
     mkdir($stagingPath, 0755, true);
