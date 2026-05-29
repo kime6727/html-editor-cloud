@@ -10,9 +10,6 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-API-Key, X-Timestamp, X-Signature');
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
@@ -792,6 +789,7 @@ function buildProjectUrl($project) {
     return $rootUrl . 'pub/' . $project['project_id'] . '/index.html';
 }
 
+if (!function_exists('getDataDir')) {
 function getDataDir($type = '') {
     $baseDir = dirname(__DIR__, 2) . '/data/';
     if ($type !== '') {
@@ -801,6 +799,7 @@ function getDataDir($type = '') {
         mkdir($baseDir, 0755, true);
     }
     return $baseDir;
+}
 }
 
 function requireProjectOwner($projectId, $userId) {
