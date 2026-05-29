@@ -6,10 +6,8 @@
  */
 
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
+ini_set('display_errors', 1);
 ini_set('log_errors', 1);
-
-try {
 
 session_start();
 
@@ -360,9 +358,5 @@ function recordVisit($db, $projectId) {
     } catch (Exception $e) {
         error_log("[IndexGateway] Failed to record visit: " . $e->getMessage());
     }
-}
-} catch (Throwable $e) {
-    error_log("[IndexGateway] FATAL: " . $e->getMessage() . " | " . $e->getTraceAsString());
-    http_response_code(500);
 }
 ?>
