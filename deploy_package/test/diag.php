@@ -31,7 +31,20 @@ if (file_exists($envFile)) {
 } else {
     echo "❌ .env 文件不存在!\n";
 }
-echo "\n";
+echo "\n=== 管理员登录凭证 (admin.php 用 .env 本地验证，不查DB) ===\n";
+$adminUser = getenv('ADMIN_USER') ?: 'NOT SET';
+$adminPass = getenv('ADMIN_PASS') ?: '';
+echo "用户名: $adminUser\n";
+$plen = strlen($adminPass);
+echo "密码长度: $plen 字符\n";
+if ($plen >= 4) {
+    echo "密码前2位: " . substr($adminPass, 0, 2) . "***" . " 后2位: " . substr($adminPass, -2) . "\n";
+} elseif ($plen > 0) {
+    echo "密码: (太短，只有 $plen 位)\n";
+} else {
+    echo "⚠️ 密码未设置!\n";
+}
+echo "➡️ 请用上面这个密码登录后台!\n\n";
 
 echo "=== DNS 解析测试 ===\n";
 $hostname = getenv('DB_HOST') ?: 'db';

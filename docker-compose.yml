@@ -39,7 +39,7 @@ services:
   # MySQL 8.4 数据库服务（固定IP，不暴露端口）
   # =============================================
   db:
-    image: mysql:8.0
+    image: mariadb:10.11
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-RootP@ssw0rd!2024}
@@ -58,6 +58,7 @@ services:
       - --max_allowed_packet=64M
       - --innodb_buffer_pool_size=128M
       - --innodb_log_file_size=64M
+      - --innodb_file_per_table=1
 
 # =============================================
 # 持久化存储

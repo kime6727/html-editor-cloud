@@ -1,17 +1,16 @@
 -- ============================================================================
--- HTML Code Editor - MySQL 8.4 完整初始化脚本
+-- HTML Code Editor - 数据库初始化脚本 (MariaDB 10.11)
 -- ============================================================================
--- 版本: v3.1
--- 日期: 2026-05-21
--- 适用: MySQL 8.4+
--- 特性: 使用MySQL 8.4新特性（UTF8MB4 0900排序规则、原子DDL、资源组等）
--- 用法: mysql -u root -p < init_mysql84.sql
+-- 版本: v3.2
+-- 日期: 2026-05-25
+-- 适用: MariaDB 10.11+ / MySQL 8.0+
+-- 用法: 自动执行于 docker-entrypoint-initdb.d
 -- ============================================================================
 
 -- 创建数据库（使用MySQL 8.4推荐的排序规则）
 CREATE DATABASE IF NOT EXISTS `html_editor`
   DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_0900_ai_ci;
+  COLLATE utf8mb4_unicode_ci;
 
 USE `html_editor`;
 
@@ -41,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `idx_status` (`status`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_last_active` (`last_active_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
 
 -- ----------------------------------------------------------------------------
@@ -76,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `projects` (
   KEY `idx_visit_count` (`visit_count`),
   KEY `idx_last_visited` (`last_visited_at`),
   KEY `idx_user_status_created` (`user_id`,`status`,`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='项目表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='项目表';
 
 
 -- ----------------------------------------------------------------------------
@@ -100,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `visit_logs` (
   KEY `idx_project_visited` (`project_id`,`visited_at`),
   KEY `idx_project_device` (`project_id`,`device_type`),
   KEY `idx_project_referer` (`project_id`,`referer`(100))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='访问日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='访问日志表';
 
 
 -- ----------------------------------------------------------------------------
@@ -120,7 +119,7 @@ CREATE TABLE IF NOT EXISTS `user_activity_logs` (
   KEY `idx_action` (`action`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_user_action` (`user_id`,`action`,`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户活动日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户活动日志表';
 
 
 -- ----------------------------------------------------------------------------
@@ -141,7 +140,7 @@ CREATE TABLE IF NOT EXISTS `admin_logs` (
   KEY `idx_action` (`action`),
   KEY `idx_target_type` (`target_type`),
   KEY `idx_created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理员操作日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员操作日志表';
 
 
 -- ----------------------------------------------------------------------------
@@ -161,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `daily_stats` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_stat_date` (`stat_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='每日统计缓存表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='每日统计缓存表';
 
 
 -- ----------------------------------------------------------------------------
@@ -175,7 +174,7 @@ CREATE TABLE IF NOT EXISTS `system_config` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_config_key` (`config_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统配置表';
 
 
 -- ----------------------------------------------------------------------------
@@ -201,7 +200,7 @@ CREATE TABLE IF NOT EXISTS `subscription_records` (
   KEY `idx_original_txn` (`original_transaction_id`),
   KEY `idx_status` (`status`),
   KEY `idx_expires_at` (`expires_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='订阅记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订阅记录表';
 
 
 -- ----------------------------------------------------------------------------
@@ -221,7 +220,7 @@ CREATE TABLE IF NOT EXISTS `temp_access_links` (
   UNIQUE KEY `uk_token` (`token`),
   KEY `idx_project_id` (`project_id`),
   KEY `idx_expires_at` (`expires_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='临时访问链接表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='临时访问链接表';
 
 
 -- ============================================================================
@@ -473,7 +472,7 @@ DO CALL sp_aggregate_daily_stats();
 -- ============================================================================
 SELECT '========================================' AS '';
 SELECT '  数据库初始化完成! (html_editor v3.1)' AS '';
-SELECT '  MySQL 8.4+ (utf8mb4_0900_ai_ci)' AS '';
+SELECT '  MySQL 8.4+ (utf8mb4_unicode_ci)' AS '';
 SELECT '========================================' AS '';
 SELECT CONCAT('  表数量: ', COUNT(*)) AS summary FROM information_schema.TABLES
 WHERE TABLE_SCHEMA = 'html_editor' AND TABLE_TYPE = 'BASE TABLE';
