@@ -70,4 +70,25 @@ if (is_dir($projectDir)) {
     }
 }
 
+echo "\n=== Testing readfile() ===\n";
+echo "filePath: $filePath\n";
+echo "realpath: " . realpath($filePath) . "\n";
+echo "filesize: " . filesize($filePath) . " bytes\n";
+echo "is_readable: " . (is_readable($filePath) ? 'YES' : 'NO') . "\n";
+
+$content = file_get_contents($filePath);
+echo "file_get_contents length: " . strlen($content) . "\n";
+echo "First 100 chars: " . substr($content, 0, 100) . "\n";
+
+echo "\n=== Now testing readfile() ===\n";
+ob_start();
+$result = @readfile($filePath);
+$output = ob_get_clean();
+echo "readfile result: " . var_export($result, true) . "\n";
+echo "readfile output length: " . strlen($output) . "\n";
+
+echo "\n=== Testing header() + content ===\n";
+header('Content-Type: text/html; charset=utf-8');
+echo $output;
+
 echo "\n✅ ALL DONE - No errors!\n";
