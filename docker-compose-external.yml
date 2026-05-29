@@ -1,0 +1,42 @@
+# HTML Code Editor - 外部数据库版
+# 配合 init_external.sql 使用第三方数据库平台
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-html_editor}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_CHARSET: utf8mb4
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASS: ${ADMIN_PASS:-admin123admin123}
+      PUBLISH_API_KEY: ${PUBLISH_API_KEY:-zheshimiyao112233}
+      HMAC_SECRET_KEY: ${HMAC_SECRET_KEY:-zheshimiyao112233}
+      DEBUG: "false"
+      CRON_SECRET_KEY: ${CRON_SECRET_KEY:-expire_cron_2024_secret}
+    volumes:
+      - pub_data:/var/www/html/pub
+      - app_logs:/var/log/nginx
+    networks:
+      - default
+      - dokploy-network
+
+volumes:
+  pub_data:
+    name: html-editor-pub-data
+    driver: local
+  app_logs:
+    name: html-editor-app-logs
+    driver: local
+
+networks:
+  default:
+    driver: bridge
+  dokploy-network:
+    external: true
