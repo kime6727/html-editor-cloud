@@ -64,6 +64,7 @@ class Database {
             PDO::ATTR_EMULATE_PREPARES => false,
             PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->charset}",
             PDO::ATTR_PERSISTENT => true,
+            PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
         ];
         
         try {

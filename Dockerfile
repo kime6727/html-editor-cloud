@@ -13,6 +13,7 @@ RUN apk add --no-cache \
     bash \
     curl \
     tzdata \
+    ca-certificates \
     oniguruma-dev \
     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone

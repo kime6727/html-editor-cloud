@@ -66,6 +66,7 @@ try {
     $pdo = new PDO($dsn, $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_TIMEOUT => 5,
+        PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
     ]);
     echo "✅ 数据库连接成功!\n";
     echo "MySQL版本: " . $pdo->query("SELECT VERSION()")->fetchColumn() . "\n";
