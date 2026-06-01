@@ -1,5 +1,7 @@
 # 部署到生产环境指南
 
+> ⚠️ **已迁移至 Dokploy 自动部署** — 当前主要部署方式是 **GitHub + Dokploy**（推送代码即可自动部署）。本文档保留作为手动部署备用方案。详见 [README_DEPLOYMENT.md](README_DEPLOYMENT.md)。
+
 ## 服务器信息
 
 - **域名**: https://html.weburl.cloudns.be

@@ -21,7 +21,7 @@ enum AppConfig {
 
     // MARK: - Limits
     static let freeProjectLimit = 5
-    static let freePublishLimit = 1
+    static let freePublishLimit = 3
 
     // MARK: - Legal & Support
     static let userAgreementURL = "https://page.niceapp.eu.cc/index.php/archives/User-Service-Agreement.html"

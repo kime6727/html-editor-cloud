@@ -1,5 +1,7 @@
 # 云端发布功能部署检查清单
 
+> ⚠️ 当前主要部署方式为 **GitHub + Dokploy** 自动部署，详见 [README_DEPLOYMENT.md](README_DEPLOYMENT.md)。本文档保留作为手动部署参考。
+
 ## 快速部署指南
 
 ### 一、后端部署

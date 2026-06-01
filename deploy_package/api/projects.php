@@ -256,31 +256,57 @@ function handleSetExpiry() {
     $projectId = $input['project_id'] ?? null;
     $expiresAt = $input['expires_at'] ?? null; // Unix timestamp
     $userId = $input['user_id'] ?? null;
-    
+
     if (!$projectId) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Missing project_id']);
         return;
     }
-    
+
     try {
         requireProjectOwner($projectId, $userId);
+
+        // 查询用户 Pro 状态和当前项目过期时间，免费用户不可改永久/超长过期
+        $owner = db()->queryOne(
+            "SELECT p.expires_at AS current_expires_at, u.is_pro AS user_is_pro
+             FROM projects p
+             LEFT JOIN users u ON u.user_id = p.user_id
+             WHERE p.project_id = ? LIMIT 1",
+            [$projectId]
+        );
+        $isPro = !empty($owner['user_is_pro']);
+
         $expiryDate = null;
         $expireDays = 0;
-        
+        $now = time();
+
         if ($expiresAt !== null && $expiresAt > 0) {
+            $requestedDuration = $expiresAt - $now;
+
+            // 免费用户：超过 1 小时（3600 秒）一律拒绝（含"永久"=2147483647）
+            if (!$isPro && $requestedDuration > 3600) {
+                http_response_code(403);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Free users can only set expiry within 1 hour. Upgrade to Pro for permanent links.'
+                ]);
+                return;
+            }
+
             $expiryDate = date('Y-m-d H:i:s', $expiresAt);
-            $expireDays = ceil(($expiresAt - time()) / 86400);
+            $expireDays = max(0, (int)ceil($requestedDuration / 86400));
         }
-        
+
         db()->execute(
             "UPDATE projects SET expires_at = ?, expire_days = ?, updated_at = NOW() WHERE project_id = ?",
             [$expiryDate, $expireDays, $projectId]
         );
-        
+
         echo json_encode([
             'success' => true,
-            'message' => 'Expiry updated'
+            'message' => 'Expiry updated',
+            'expires_at' => $expiryDate,
+            'is_permanent' => $expiryDate === null
         ]);
     } catch (Exception $e) {
         http_response_code(500);
@@ -389,18 +415,13 @@ function handleUnpublish() {
             [$projectId]
         );
         
-        // 删除文件目录
+        // 删除文件目录（不存在也不算失败，幂等操作）
         $uploadDir = __DIR__ . '/../pub/';
         $projectDir = $uploadDir . $projectId;
-        if (!is_dir($projectDir)) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Project directory not found']);
-            return;
+        if (is_dir($projectDir)) {
+            safeDeleteDir($projectDir);
         }
-        
-        // 删除文件目录
-        safeDeleteDir($projectDir);
-        
+
         echo json_encode([
             'success' => true,
             'message' => 'Project unpublished'

@@ -751,6 +751,11 @@ struct ContentView: View {
             return
         }
         
+        if !subscriptionManager.canPublish() {
+            subscriptionManager.showPaywall = true
+            return
+        }
+        
         showPublishConfig = true
     }
     

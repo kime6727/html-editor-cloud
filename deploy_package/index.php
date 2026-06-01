@@ -99,16 +99,35 @@ try {
     
     if (!empty($project['access_password'])) {
         $sessionKey = 'ce_project_access_' . $projectId;
-        
+        $attemptsKey = 'ce_pwd_attempts_' . $projectId;
+        $lockKey = 'ce_pwd_lock_' . $projectId;
+
         if (empty($_SESSION[$sessionKey])) {
+            // 锁定检查：15 分钟内 5 次错误则锁定 15 分钟
+            if (!empty($_SESSION[$lockKey]) && $_SESSION[$lockKey] > time()) {
+                $remaining = ceil(($_SESSION[$lockKey] - time()) / 60);
+                showPasswordPrompt($projectId, "尝试次数过多，请 {$remaining} 分钟后再试", true);
+                exit;
+            }
+
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
                 $submittedPassword = $_POST['password'];
-                
+
                 if (password_verify($submittedPassword, $project['access_password'])) {
                     $_SESSION[$sessionKey] = true;
                     $_SESSION[$sessionKey . '_time'] = time();
+                    unset($_SESSION[$attemptsKey], $_SESSION[$lockKey]);
                 } else {
-                    showPasswordPrompt($projectId, '密码错误，请重试');
+                    $_SESSION[$attemptsKey] = ($_SESSION[$attemptsKey] ?? 0) + 1;
+
+                    if ($_SESSION[$attemptsKey] >= 5) {
+                        $_SESSION[$lockKey] = time() + 900; // 锁定 15 分钟
+                        unset($_SESSION[$attemptsKey]);
+                        showPasswordPrompt($projectId, '尝试次数过多，已临时锁定 15 分钟', true);
+                    } else {
+                        $left = 5 - $_SESSION[$attemptsKey];
+                        showPasswordPrompt($projectId, "密码错误，还可尝试 {$left} 次");
+                    }
                     exit;
                 }
             } else {
@@ -195,13 +214,13 @@ try {
     exit;
 }
 
-function showPasswordPrompt($projectId, $errorMessage = null) {
+function showPasswordPrompt($projectId, $errorMessage = null, $locked = false) {
     $promptPath = __DIR__ . '/password_prompt.html';
-    
+
     if (file_exists($promptPath)) {
         $content = file_get_contents($promptPath);
         $content = str_replace('{{PROJECT_ID}}', $projectId, $content);
-        
+
         if ($errorMessage) {
             $content = str_replace('{{ERROR_MESSAGE}}', $errorMessage, $content);
             $content = str_replace('{{SHOW_ERROR}}', 'block', $content);
@@ -209,7 +228,16 @@ function showPasswordPrompt($projectId, $errorMessage = null) {
             $content = str_replace('{{ERROR_MESSAGE}}', '', $content);
             $content = str_replace('{{SHOW_ERROR}}', 'none', $content);
         }
-        
+
+        // 锁定时禁用提交按钮
+        if ($locked) {
+            $content = preg_replace(
+                '/(<button[^>]*type="submit"[^>]*>)/i',
+                '$1 disabled style="opacity:0.5;cursor:not-allowed;"',
+                $content
+            );
+        }
+
         header('Content-Type: text/html; charset=utf-8');
         header('Cache-Control: no-cache, no-store, must-revalidate');
         echo $content;

@@ -1,5 +1,7 @@
 # 生产环境部署检查清单
 
+> ⚠️ 当前主要部署方式为 **GitHub + Dokploy** 自动部署，详见 [README_DEPLOYMENT.md](README_DEPLOYMENT.md)。本文档保留作为手动部署参考。
+
 ## 📦 已准备好的文件
 
 ✅ **production_deploy.tar.gz** - 生产环境部署包（已自动调整路径）  

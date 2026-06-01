@@ -240,22 +240,21 @@ struct ProjectBrowserView: View {
     }
     
     func publishProject(_ project: HTMLProject) {
-        // If already published, show result directly
-        if let url = project.cloudUrl {
-            self.selectedProjectToPublish = project
+        let liveProject = documentManager.projects.first(where: { $0.id == project.id }) ?? project
+        
+        if let url = liveProject.cloudUrl {
+            self.selectedProjectToPublish = liveProject
             self.publishingUrl = url
             self.showPublishResult = true
             return
         }
         
-        // Check publish limit
         if !subscriptionManager.canPublish() {
             subscriptionManager.showPaywall = true
             return
         }
         
-        // Show publish config first
-        selectedProjectToPublish = project
+        selectedProjectToPublish = liveProject
         showPublishConfig = true
     }
     

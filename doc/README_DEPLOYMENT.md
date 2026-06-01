@@ -1,208 +1,253 @@
-# 🚀 生产环境部署 - 快速开始
+# 🚀 生产环境部署指南
 
 ## 📋 概述
 
-本指南帮助你将云端发布功能部署到生产服务器：
-- **目标服务器**: https://html.weburl.cloudns.be
-- **服务器环境**: PHP + MySQL
-- **域名绑定**: `/backend` 目录作为网站根目录
+本项目后端采用 **GitHub + Dokploy** 自动化部署方案，推送代码到 GitHub 后 Dokploy 自动检测变更并完成部署。
 
-## ✅ 已完成的准备工作
+| 项目 | 说明 |
+|------|------|
+| **GitHub 仓库** | [kime6727/html-editor-cloud](https://github.com/kime6727/html-editor-cloud) |
+| **目标服务器** | https://html.weburl.cloudns.be |
+| **服务器环境** | PHP + MySQL |
+| **部署平台** | Dokploy（自动检测 GitHub 更新） |
+| **后端目录** | `deploy_package/`（网站根目录） |
 
-1. ✅ **路径配置已调整** - 所有文件路径已适配线上目录结构
-2. ✅ **部署包已生成** - `production_deploy.tar.gz` 可直接上传
-3. ✅ **iOS配置已恢复** - 指向线上服务器地址
-4. ✅ **所有功能已修复** - 13个问题全部解决
+---
 
-## 🎯 三步快速部署
+## 🔄 部署架构
 
-### 步骤1：配置数据库（1分钟）
-
-```bash
-# 编辑数据库配置
-nano deploy_package/.env
+```
+开发者本地
+    │
+    │ git push
+    ▼
+GitHub (main 分支)
+    │
+    │ Dokploy 自动检测
+    ▼
+Dokploy 部署平台
+    │
+    │ 拉取最新代码 → 同步到服务器
+    ▼
+https://html.weburl.cloudns.be
 ```
 
-填入你的数据库信息：
+---
+
+## 🎯 日常部署流程（推荐）
+
+### 后端代码变更后，只需一步：
+
+```bash
+# 1. 提交后端代码
+git add deploy_package/
+git commit -m "feat(api): 描述你的修改"
+git push origin main
+```
+
+Dokploy 会自动检测到 GitHub 仓库有新的推送，然后自动拉取最新代码并部署到服务器。**无需手动 SCP、FTP 或 SSH 登录服务器。**
+
+### 部署触发时机
+
+- ✅ 任何推送到 `main` 分支的提交都会触发 Dokploy 自动部署
+- ✅ Dokploy 轮询 GitHub 仓库，检测到新 commit 后自动拉取
+- ✅ 部署完成后即可通过 https://html.weburl.cloudns.be 验证
+
+---
+
+## 📂 目录结构（线上）
+
+```
+服务器根目录 (deploy_package/)
+├── .env                       # 环境变量（数据库配置、API Key）
+├── .htaccess                  # Apache URL 重写规则
+├── publish.php                # 发布 API
+├── delete.php                 # 删除 API
+├── redirect.php               # 短链跳转
+├── index.php                  # 发布页面入口
+├── test_publish.php           # 诊断脚本
+├── api/
+│   └── projects.php           # 项目管理 API
+├── pub/                       # 已发布项目（需 777 权限）
+│   └── {project_id}/
+│       └── index.html
+├── test/                      # 测试脚本
+│   └── db_test.php
+├── database/
+│   └── schema.sql
+└── expire_cron.php            # 过期项目清理定时任务
+```
+
+---
+
+## ⚙️ 首次部署配置
+
+### 1. 环境变量（.env）
+
+在服务器上配置 `deploy_package/.env`：
+
 ```env
 DB_HOST=localhost
-DB_NAME=你的数据库名
-DB_USER=你的数据库用户
-DB_PASS=你的数据库密码
+DB_NAME=html_editor
+DB_USER=your_db_user
+DB_PASS=your_db_password
 PUBLISH_API_KEY=f7a2b9c3e1d6e5f8a0b9c2d1e4f7a2b9
 ```
 
-### 步骤2：上传到服务器（2分钟）
+> ⚠️ `.env` 文件包含敏感信息，已在 `.gitignore` 中排除，不会推送到 GitHub。首次部署需手动在服务器上创建。
+
+### 2. 目录权限
 
 ```bash
-# 使用SCP上传
-scp production_deploy.tar.gz user@server:/path/to/html.weburl.cloudns.be/
-
-# 或者使用FTP客户端（FileZilla等）上传
+chmod 777 pub/          # 发布目录必须可写
+chmod 600 .env          # 保护敏感配置
 ```
 
-### 步骤3：在服务器上部署（3分钟）
-
-SSH登录服务器后执行：
+### 3. 数据库初始化
 
 ```bash
-# 进入网站目录
-cd /path/to/html.weburl.cloudns.be/
-
-# 解压文件
-tar -xzf production_deploy.tar.gz
-
-# 设置权限
-chmod 777 pub/
-chmod 600 .env
-
-# 导入数据库（如果需要）
-mysql -u user -p database_name < database/schema.sql
-
-# 测试
-curl https://html.weburl.cloudns.be/test_publish.php
+mysql -u user -p html_editor < database/schema.sql
 ```
 
-## 🧪 测试验证
+### 4. Dokploy 配置
 
-### 服务器测试
+在 Dokploy 管理面板中：
+
+1. 创建新应用，选择 **GitHub** 作为源
+2. 关联仓库 `kime6727/html-editor-cloud`
+3. 设置分支：`main`
+4. 配置服务器路径指向 `deploy_package/`
+5. 开启自动部署（Auto Deploy）
+
+---
+
+## 🧪 部署后验证
 
 ```bash
 # 1. 诊断脚本
 curl https://html.weburl.cloudns.be/test_publish.php
 
-# 2. API测试（返回403正常）
+# 2. API 测试（返回 403 表示安全机制正常）
 curl -I https://html.weburl.cloudns.be/publish.php
 
-# 3. 数据库测试
+# 3. 数据库连接测试
 curl https://html.weburl.cloudns.be/test/db_test.php
+
+# 4. 访问已发布页面
+curl -I https://html.weburl.cloudns.be/pub/{project_id}/index.html
 ```
 
-### iOS应用测试
+---
 
-1. 在Xcode中 Clean Build Folder (`⇧⌘K`)
-2. 运行应用 (`⌘R`)
-3. 创建测试项目并发布
-4. 验证返回的URL可以访问
+## 🔑 关键配置说明
 
-## 📁 文件说明
+### 路径配置
 
-| 文件 | 说明 |
-|------|------|
-| `production_deploy.tar.gz` | 生产环境部署包（已调整路径） |
-| `deploy_package/` | 解压后的文件目录 |
-| `prepare_production.sh` | 自动生成部署包的脚本 |
-| `PRODUCTION_DEPLOYMENT_CHECKLIST.md` | 详细部署检查清单 |
-| `DEPLOY_TO_PRODUCTION.md` | 完整部署文档 |
-| `CLOUD_PUBLISH_FIXES_COMPLETE.md` | 功能修复报告 |
+由于线上域名绑定到 `deploy_package/` 目录作为网站根目录，所有 PHP 文件中的路径已适配：
 
-## 🔧 关键修改说明
-
-### 路径调整
-
-由于线上域名绑定到 `/backend` 目录，所有路径已从：
 ```php
-$pubDir = $scriptDir . '/../pub/';  // 本地：上一级目录
+// 线上路径（同级）
+$pubDir = $scriptDir . '/pub/';
+
+// 本地开发路径（上一级）
+// $pubDir = $scriptDir . '/../pub/';
 ```
 
-调整为：
-```php
-$pubDir = $scriptDir . '/pub/';     // 线上：同级目录
-```
+### URL 结构
 
-### 修改的文件
-
-- ✅ `publish.php` - 发布API
-- ✅ `api/projects.php` - 项目管理API
-- ✅ `redirect.php` - 短链跳转
-- ✅ `delete.php` - 删除功能
-
-### URL结构
-
-部署后的URL结构：
 ```
 https://html.weburl.cloudns.be/
-├── publish.php              # 发布API
-├── api/projects.php         # 项目管理API
+├── publish.php              # 发布 API
+├── api/projects.php         # 项目管理 API
 ├── redirect.php             # 短链跳转
 ├── pub/                     # 已发布项目
 │   └── {project_id}/
 │       └── index.html
-└── p/{slug}                 # 短链访问（需要URL重写）
+└── p/{slug}                 # 短链访问（需 URL 重写）
 ```
 
-## ⚠️ 重要提示
+### iOS 客户端配置
 
-### 必须配置的项
+iOS 客户端的 API 地址指向线上服务器（`CloudService.swift`）：
 
-1. **数据库信息** - 编辑 `.env` 文件
-2. **pub目录权限** - 必须设置为 `777`
-3. **数据库结构** - 导入 `schema.sql`
-
-### 可选配置
-
-1. **URL重写** - 配置短链访问（`.htaccess` 或 Nginx配置）
-2. **OPcache** - 提升PHP性能
-3. **Gzip压缩** - 减少传输大小
-4. **定时清理** - 自动清理过期项目
-
-## 🆘 常见问题
-
-### Q1: 上传后返回500错误
-
-**检查**：
-- PHP错误日志
-- .env文件格式
-- 数据库连接
-
-### Q2: 发布成功但访问404
-
-**检查**：
-- pub目录是否存在
-- 文件是否真正上传
-- 权限是否正确（777）
-
-### Q3: 数据库连接失败
-
-**检查**：
-- .env配置是否正确
-- 数据库是否已创建
-- 用户权限是否足够
-
-### Q4: iOS应用发布失败
-
-**检查**：
-- Xcode控制台错误信息
-- 网络连接
-- API Key是否一致
-
-## 📚 详细文档
-
-- **完整部署流程**: `PRODUCTION_DEPLOYMENT_CHECKLIST.md`
-- **部署详细说明**: `DEPLOY_TO_PRODUCTION.md`
-- **功能修复报告**: `CLOUD_PUBLISH_FIXES_COMPLETE.md`
-- **故障排查指南**: `DEPLOYMENT_CHECKLIST.md`
-
-## 🎉 部署成功标志
-
-当你看到以下情况，说明部署成功：
-
-1. ✅ `test_publish.php` 返回诊断信息
-2. ✅ iOS应用发布成功
-3. ✅ 返回URL格式：`https://html.weburl.cloudns.be/pub/xxxxx/index.html`
-4. ✅ 点击URL能正常访问
-5. ✅ 内容和样式都正确显示
-
-## 📞 需要帮助？
-
-如果遇到问题：
-
-1. 查看 `PRODUCTION_DEPLOYMENT_CHECKLIST.md` 中的故障排查部分
-2. 检查服务器错误日志
-3. 运行诊断脚本：`curl https://html.weburl.cloudns.be/test_publish.php`
+```swift
+static let baseURL = "https://html.weburl.cloudns.be"
+```
 
 ---
 
-**准备好了吗？开始部署吧！** 🚀
+## 🔄 过期项目清理
 
-按照上面的三个步骤，6分钟内即可完成部署！
+服务器配置了定时任务自动清理过期项目：
+
+```bash
+# 每隔 5 分钟执行一次
+*/5 * * * * php /path/to/deploy_package/expire_cron.php
+```
+
+`expire_cron.php` 会：
+1. 查找 `expires_at < NOW()` 且状态为 `active` 的项目
+2. 备份原始 HTML 文件为 `.bak`
+3. 替换为过期提示页面
+4. 更新数据库状态为 `expired`
+
+> 访问层面由 `index.php` 实时拦截过期链接，返回 HTTP 410。
+
+---
+
+## 🆘 常见问题
+
+### Q1: 推送后 Dokploy 没有自动部署
+
+**检查**：
+- Dokploy 面板中 Auto Deploy 是否开启
+- GitHub Webhook 是否配置正确
+- Dokploy 与 GitHub 的连接是否正常
+
+### Q2: 部署后 API 返回 500
+
+**检查**：
+- 服务器上 `.env` 文件是否存在且格式正确
+- 数据库连接是否正常
+- PHP 错误日志
+
+### Q3: 发布成功但页面访问 404
+
+**检查**：
+- `pub/` 目录权限是否为 `777`
+- 文件是否真正写入到 `pub/` 目录
+- 服务器磁盘空间是否充足
+
+### Q4: 数据库连接失败
+
+**检查**：
+- `.env` 配置与服务器数据库是否一致
+- 数据库用户权限是否足够
+
+### Q5: iOS 应用发布失败
+
+**检查**：
+- Xcode 控制台错误信息
+- API Key 是否与服务器 `.env` 中的 `PUBLISH_API_KEY` 一致
+- 网络是否能访问 `https://html.weburl.cloudns.be`
+
+---
+
+## 📚 相关文档
+
+| 文档 | 说明 |
+|------|------|
+| `DEPLOY_TO_PRODUCTION.md` | 手动部署详细步骤（备用方案） |
+| `PRODUCTION_DEPLOYMENT_CHECKLIST.md` | 部署检查清单 |
+| `CLOUD_PUBLISH_FIXES_COMPLETE.md` | 云端发布功能修复报告 |
+| `产品前后端功能完整性分析.md` | 功能完整性分析 |
+
+---
+
+## 🎉 部署成功标志
+
+1. ✅ `test_publish.php` 返回诊断信息
+2. ✅ iOS 应用发布成功并返回 URL
+3. ✅ 返回 URL 格式：`https://html.weburl.cloudns.be/pub/{project_id}/index.html`
+4. ✅ 点击 URL 正常访问，内容和样式正确
+5. ✅ Dokploy 面板显示部署成功

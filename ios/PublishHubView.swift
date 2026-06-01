@@ -29,6 +29,10 @@ struct PublishHubView: View {
     @State private var showGitHubPublishResult = false
     @State private var showPublishedProjects = false
     
+    private var liveProject: HTMLProject {
+        documentManager.projects.first(where: { $0.id == project.id }) ?? project
+    }
+    
     enum PublishMethod: String, CaseIterable {
         case localNetwork = "local_network"
         case cloud = "cloud_publish"
@@ -144,9 +148,9 @@ struct PublishHubView: View {
                     .foregroundColor(Color("Color"))
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(project.name)
+                    Text(liveProject.name)
                         .font(.headline)
-                    Text(String(format: "project_files_count".localized, project.files.count))
+                    Text(String(format: "project_files_count".localized, liveProject.files.count))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -154,7 +158,7 @@ struct PublishHubView: View {
                 Spacer()
                 
                 // Cloud status badge
-                if project.cloudUrl != nil {
+                if liveProject.cloudUrl != nil {
                     Label(safeLocalize("published_status"), systemImage: "checkmark.circle.fill")
                         .font(.caption)
                         .foregroundColor(.green)
@@ -167,9 +171,9 @@ struct PublishHubView: View {
             
             // File size info
             HStack(spacing: 16) {
-                infoBadge(icon: "doc.text", title: "files".localized, value: "\(project.files.count)")
-                infoBadge(icon: "text.word.spacing", title: "size".localized, value: formatFileSize(project.totalSize))
-                infoBadge(icon: "clock", title: "updated".localized, value: formatDate(project.updatedAt))
+                infoBadge(icon: "doc.text", title: "files".localized, value: "\(liveProject.files.count)")
+                infoBadge(icon: "text.word.spacing", title: "size".localized, value: formatFileSize(liveProject.totalSize))
+                infoBadge(icon: "clock", title: "updated".localized, value: formatDate(liveProject.updatedAt))
             }
         }
         .padding()
@@ -236,14 +240,14 @@ struct PublishHubView: View {
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 quickActionButton(icon: "qrcode", title: "qr_code".localized, color: .blue) {
-                    if let url = server.serverURL ?? project.cloudUrl {
+                    if let url = server.serverURL ?? liveProject.cloudUrl {
                         qrURL = url
                         showQRCode = true
                     }
                 }
                 
                 quickActionButton(icon: "square.and.arrow.up", title: "share_link".localized, color: .green) {
-                    if let url = server.serverURL ?? project.cloudUrl {
+                    if let url = server.serverURL ?? liveProject.cloudUrl {
                         shareURL = URL(string: url)
                         showShareSheet = true
                     }
@@ -353,20 +357,20 @@ struct PublishHubView: View {
             server.stopServer()
             documentManager.toastItem = ToastItem(message: "sharing_stopped".localized, type: .info)
         } else {
-            server.startServer(with: project)
+            server.startServer(with: liveProject)
             documentManager.toastItem = ToastItem(message: "sharing_started".localized, type: .success)
         }
     }
     
     private func startCloudPublish() {
-        if project.cloudUrl != nil {
+        if liveProject.cloudUrl != nil {
             // Show existing cloud URL
-            publishingUrl = project.cloudUrl!
+            publishingUrl = liveProject.cloudUrl!
             let dateFormatter = ISO8601DateFormatter()
             publishResult = PublishResult(
-                url: project.cloudUrl!,
-                id: project.cloudId ?? "",
-                expiresAt: project.expiresAt.map { dateFormatter.string(from: $0) }
+                url: liveProject.cloudUrl!,
+                id: liveProject.cloudId ?? "",
+                expiresAt: liveProject.expiresAt.map { dateFormatter.string(from: $0) }
             )
             showPublishResult = true
             return
@@ -400,7 +404,7 @@ struct PublishHubView: View {
         
         Task {
             do {
-                let result = try await githubService.publishProject(project) { progress, message in
+                let result = try await githubService.publishProject(liveProject) { progress, message in
                     DispatchQueue.main.async {
                         publishProgress = progress
                         publishProgressText = message
@@ -411,8 +415,8 @@ struct PublishHubView: View {
                     isPublishing = false
                     
                     PublishHistoryManager.shared.addRecord(
-                        projectId: project.id,
-                        projectName: project.name,
+                        projectId: liveProject.id,
+                        projectName: liveProject.name,
                         url: result.url,
                         method: .github,
                         visitCount: 0
@@ -456,7 +460,7 @@ struct PublishHubView: View {
                 try? await Task.sleep(nanoseconds: 200_000_000)
             }
             
-            if let result = await cloudService.publishProjectWithDetails(project, config: config) {
+            if let result = await cloudService.publishProjectWithDetails(liveProject, config: config) {
                 await MainActor.run {
                     self.publishResult = result
                     self.publishingUrl = result.url
@@ -464,7 +468,7 @@ struct PublishHubView: View {
                     
                     // Update project cloud info
                     documentManager.updateCloudInfo(
-                        projectId: project.id,
+                        projectId: liveProject.id,
                         url: result.url,
                         cloudId: result.id,
                         expiresAt: result.expiresAt
@@ -472,8 +476,8 @@ struct PublishHubView: View {
                     
                     // Add to publish history
                     PublishHistoryManager.shared.addRecord(
-                        projectId: project.id,
-                        projectName: project.name,
+                        projectId: liveProject.id,
+                        projectName: liveProject.name,
                         url: result.url,
                         method: .cloud,
                         visitCount: 0
@@ -497,7 +501,7 @@ struct PublishHubView: View {
     }
     
     private func exportProjectAsZip() {
-        if let zipURL = documentManager.exportProject(project) {
+        if let zipURL = documentManager.exportProject(liveProject) {
             shareURL = zipURL
             showShareSheet = true
             documentManager.toastItem = ToastItem(message: "export_success".localized, type: .success)

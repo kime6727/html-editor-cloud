@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import CryptoKit
 
 @MainActor
 class PublishedProjectsManager: ObservableObject {
@@ -161,22 +162,35 @@ class PublishedProjectsManager: ObservableObject {
     func fetchStats(for cloudId: String) async -> (visitCount: Int, isExpired: Bool)? {
         let urlString = AppConfig.apiBaseURL + "/stats.php?id=" + cloudId
         guard let url = URL(string: urlString) else { return nil }
-        
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        // 发送 HMAC 头（与服务端其他接口保持一致）
+        let apiKey = AppConfig.apiKey
+        let timestamp = String(Int(Date().timeIntervalSince1970))
+        let secret = AppConfig.hmacSecretKey.isEmpty ? apiKey : AppConfig.hmacSecretKey
+        let message = apiKey + timestamp
+        let signature = HMACService.sha256(message: message, key: secret)
+        request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
+        request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
+        request.setValue(signature, forHTTPHeaderField: "X-Signature")
+
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, _) = try await URLSession.shared.data(for: request)
             if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                 let visitCount = json["visit_count"] as? Int ?? 0
                 let isExpired = json["is_expired"] as? Bool ?? false
                 let expiresAtStr = json["expires_at"] as? String
-                
+
                 await MainActor.run {
                     updateVisitCount(cloudId: cloudId, count: visitCount)
-                    
+
                     if let expiresAtStr = expiresAtStr {
                         let formatter = DateFormatter()
                         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
                         let expiresDate = formatter.date(from: expiresAtStr)
-                        
+
                         if let index = publishedProjects.firstIndex(where: { $0.cloudId == cloudId }) {
                             publishedProjects[index].expiresAt = expiresDate
                         }

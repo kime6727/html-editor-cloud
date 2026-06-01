@@ -40,3 +40,6 @@ docker-compose.override.yml
 # 压缩包
 *.zip
 *.tar.gz
+
+# iOS 打包产物
+*.ipa

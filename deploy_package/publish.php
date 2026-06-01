@@ -193,6 +193,7 @@ $expire_minutes = isset($_POST['expire_minutes']) ? (int)$_POST['expire_minutes'
 $is_update = isset($_POST['is_update']) && $_POST['is_update'] === '1';
 $user_id = $_POST['user_id'] ?? null;
 $access_password = $_POST['access_password'] ?? null;
+$enable_stats = isset($_POST['enable_stats']) && $_POST['enable_stats'] === '1'; // 当前未持久化，接受但不报错
 
 // 对密码进行哈希存储
 $hashed_password = null;
@@ -267,12 +268,13 @@ if (!$is_pro && $user_id) {
             [$user_id]
         );
         
-        // 免费用户每月只能发布1次（首次发布）
-        if (!$is_update && $monthlyCount['count'] >= 1) {
+        // 免费用户每月最多发布3次（含首次发布）
+        $freeMonthlyLimit = 3;
+        if (!$is_update && $monthlyCount['count'] >= $freeMonthlyLimit) {
             http_response_code(403);
             echo json_encode([
-                'status' => 'error', 
-                'message' => 'Monthly publish limit reached. Upgrade to Pro for unlimited publishes.',
+                'status' => 'error',
+                'message' => "Monthly publish limit reached ($freeMonthlyLimit projects). Upgrade to Pro for unlimited publishes.",
                 'code' => 'publish_limit_exceeded'
             ]);
             exit;
