@@ -40,13 +40,13 @@ $config_api_keys = [$env['PUBLISH_API_KEY'] ?? ''];
 
 if (empty($api_key) || !in_array($api_key, $config_api_keys)) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Invalid API key']);
+    echo json_encode(['success' => false, 'code' => 'invalid_signature', 'message' => 'Invalid API key']);
     exit;
 }
 
 if (empty($timestamp) || !ctype_digit($timestamp)) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Missing timestamp']);
+    echo json_encode(['success' => false, 'code' => 'invalid_signature', 'message' => 'Missing timestamp']);
     exit;
 }
 
@@ -54,14 +54,14 @@ $ts = (int)$timestamp;
 $now = time();
 if (abs($now - $ts) > 300) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Request expired']);
+    echo json_encode(['success' => false, 'code' => 'timestamp_expired', 'message' => 'Request expired']);
     exit;
 }
 
 $expectedSignature = hash_hmac('sha256', $api_key . $timestamp, $env['HMAC_SECRET_KEY'] ?? $api_key);
 if (!hash_equals($expectedSignature, $signature)) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Invalid signature']);
+    echo json_encode(['success' => false, 'code' => 'invalid_signature', 'message' => 'Invalid signature']);
     exit;
 }
 
@@ -113,7 +113,7 @@ switch ($action) {
         break;
     default:
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Invalid action']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Invalid action']);
         exit;
 }
 
@@ -163,12 +163,13 @@ function handleListProjects() {
         
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'message' => 'Projects loaded',
             'projects' => $result
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -180,24 +181,25 @@ function handleGetProject() {
     
     if (!$projectId) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing project_id']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing project_id']);
         return;
     }
-    
+
     try {
         $project = db()->queryOne(
             "SELECT * FROM projects WHERE project_id = ? AND status != 'deleted'",
             [$projectId]
         );
-        
+
         if (!$project) {
             http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Project not found']);
+            echo json_encode(['success' => false, 'code' => 'project_not_found', 'message' => 'Project not found']);
             return;
         }
         
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'project' => [
                 'id' => $project['project_id'],
                 'name' => $project['project_name'],
@@ -210,7 +212,7 @@ function handleGetProject() {
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -225,7 +227,7 @@ function handleToggleStatus() {
     
     if (!$projectId || $isActive === null) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing parameters']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing parameters']);
         return;
     }
     
@@ -240,11 +242,12 @@ function handleToggleStatus() {
         
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'message' => 'Status updated'
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -261,7 +264,7 @@ function handleSetExpiry() {
 
     if (!$projectId) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing project_id']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing project_id']);
         return;
     }
 
@@ -347,13 +350,14 @@ function handleSetExpiry() {
 
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'message' => 'Expiry updated',
             'expires_at' => $expiryDate,
             'is_permanent' => $expiryDate === null
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -368,7 +372,7 @@ function handleSetPassword() {
     
     if (!$projectId || !$password) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing parameters']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing parameters']);
         return;
     }
     
@@ -403,11 +407,12 @@ function handleSetPassword() {
 
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'message' => 'Password set'
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -421,7 +426,7 @@ function handleRemovePassword() {
     
     if (!$projectId) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing project_id']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing project_id']);
         return;
     }
     
@@ -453,11 +458,12 @@ function handleRemovePassword() {
 
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'message' => 'Password removed'
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -471,7 +477,7 @@ function handleUnpublish() {
     
     if (!$projectId) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing project_id']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing project_id']);
         return;
     }
     
@@ -486,7 +492,7 @@ function handleUnpublish() {
         
         if (!$project) {
             http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Project not found']);
+            echo json_encode(['success' => false, 'code' => 'project_not_found', 'message' => 'Project not found']);
             return;
         }
         
@@ -505,11 +511,12 @@ function handleUnpublish() {
 
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'message' => 'Project unpublished'
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -521,7 +528,7 @@ function handleGetStats() {
     
     if (!$projectId) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing project_id']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing project_id']);
         return;
     }
     
@@ -533,7 +540,7 @@ function handleGetStats() {
         
         if (!$project) {
             http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Project not found']);
+            echo json_encode(['success' => false, 'code' => 'project_not_found', 'message' => 'Project not found']);
             return;
         }
         
@@ -586,7 +593,7 @@ function handleGetStats() {
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -601,7 +608,7 @@ function handleUpdateContent() {
     
     if (!$projectId || !$content) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing parameters']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing parameters']);
         return;
     }
     
@@ -614,7 +621,7 @@ function handleUpdateContent() {
         
         if (!is_dir($projectDir)) {
             http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Project directory not found']);
+            echo json_encode(['success' => false, 'code' => 'project_not_found', 'message' => 'Project directory not found']);
             return;
         }
         
@@ -628,11 +635,12 @@ function handleUpdateContent() {
         
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'message' => 'Content updated'
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -649,7 +657,7 @@ function handleSetRedirectUrl() {
     
     if (!$projectId) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing project_id']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing project_id']);
         return;
     }
     
@@ -659,7 +667,7 @@ function handleSetRedirectUrl() {
         if ($redirectType === 'custom_url' && $redirectUrl) {
             if (!filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
                 http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Invalid redirect URL']);
+                echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Invalid redirect URL']);
                 return;
             }
         }
@@ -677,11 +685,12 @@ function handleSetRedirectUrl() {
         
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'message' => 'Redirect settings updated'
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -698,7 +707,7 @@ function handleGetVisitLogs() {
     
     if (!$projectId) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing project_id']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing project_id']);
         return;
     }
     
@@ -773,6 +782,7 @@ function handleGetVisitLogs() {
         
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'total' => $total,
             'page' => $page,
             'limit' => $limit,
@@ -781,7 +791,7 @@ function handleGetVisitLogs() {
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -797,7 +807,7 @@ function handleBatchOperation() {
     
     if (!$operation || empty($projectIds)) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing parameters']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing parameters']);
         return;
     }
     
@@ -861,6 +871,7 @@ function handleBatchOperation() {
         
         echo json_encode([
             'success' => true,
+            'code' => 'ok',
             'message' => "Batch operation completed",
             'successCount' => $successCount,
             'failCount' => $failCount,
@@ -868,7 +879,7 @@ function handleBatchOperation() {
         ]);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
 }
 
@@ -877,7 +888,7 @@ function handleBatchOperation() {
  */
 function handleCreateTempLink() {
     http_response_code(410);
-    echo json_encode(['success' => false, 'message' => 'Temporary access links have been removed']);
+    echo json_encode(['success' => false, 'code' => 'endpoint_removed', 'message' => 'Temporary access links have been removed']);
 }
 
 // ========== 辅助函数 ==========
@@ -907,7 +918,7 @@ function getDataDir($type = '') {
 function requireProjectOwner($projectId, $userId) {
     if (empty($userId)) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Missing user_id']);
+        echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing user_id']);
         exit;
     }
     
@@ -918,13 +929,13 @@ function requireProjectOwner($projectId, $userId) {
     
     if (!$project) {
         http_response_code(404);
-        echo json_encode(['success' => false, 'message' => 'Project not found']);
+        echo json_encode(['success' => false, 'code' => 'project_not_found', 'message' => 'Project not found']);
         exit;
     }
     
     if (!empty($project['user_id']) && $project['user_id'] !== $userId) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Permission denied']);
+        echo json_encode(['success' => false, 'code' => 'permission_denied', 'message' => 'Permission denied']);
         exit;
     }
 }

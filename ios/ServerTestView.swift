@@ -283,20 +283,20 @@ struct ServerTestView: View {
     @MainActor
     private func runHMACTest(index: Int) async {
         let apiKey = AppConfig.apiKey
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        let signature = AppConfig.generateSignature(timestamp: timestamp)
-        
+        let (timestamp, signature) = HMACAuth.generate(
+            apiKey: apiKey,
+            secret: AppConfig.hmacSecretKey
+        )
+
         log("API Key: \(apiKey.prefix(4))****")
         log("Timestamp: \(timestamp)")
         log("Signature: \(signature.prefix(8))...")
-        
+
         let testURL = AppConfig.publishAPIBaseURL + "/publish.php"
         var request = URLRequest(url: URL(string: testURL)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
-        request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
-        request.setValue(signature, forHTTPHeaderField: "X-Signature")
+        HMACAuth.applyHeaders(to: &request)
         request.timeoutInterval = 8
         request.httpBody = try? JSONSerialization.data(withJSONObject: [
             "action": "test",
@@ -334,16 +334,12 @@ struct ServerTestView: View {
     
     @MainActor
     private func runUserSyncTest(index: Int) async {
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        let signature = AppConfig.generateSignature(timestamp: timestamp)
         let url = AppConfig.apiBaseURL + "/sync_user.php"
-        
+
         var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
-        request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
-        request.setValue(signature, forHTTPHeaderField: "X-Signature")
+        HMACAuth.applyHeaders(to: &request)
         request.timeoutInterval = 8
         
         let body: [String: Any] = [
@@ -380,19 +376,15 @@ struct ServerTestView: View {
     
     @MainActor
     private func runPublishTest(index: Int) async {
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        let signature = AppConfig.generateSignature(timestamp: timestamp)
         let url = AppConfig.publishAPIBaseURL + "/publish.php"
-        
+
         log("POST \(url)")
         log("API-Key: \(AppConfig.apiKey.prefix(4))****")
         log("User: \(UserManager.shared.userId.prefix(8))...")
-        
+
         var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
-        request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
-        request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
-        request.setValue(signature, forHTTPHeaderField: "X-Signature")
+        HMACAuth.applyHeaders(to: &request)
         request.setValue(UserManager.shared.userId, forHTTPHeaderField: "X-User-ID")
         request.timeoutInterval = 10
         
@@ -450,17 +442,19 @@ struct ServerTestView: View {
     
     @MainActor
     private func runProjectsTest(index: Int) async {
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        let signature = AppConfig.generateSignature(timestamp: timestamp)
+        let (timestamp, signature) = HMACAuth.generate(
+            apiKey: AppConfig.apiKey,
+            secret: AppConfig.hmacSecretKey
+        )
         let url = AppConfig.apiBaseURL + "/api/projects.php?action=list&page=1&limit=5&user_id=\(UserManager.shared.userId)&timestamp=\(timestamp)&signature=\(signature)"
-        
+
         log("GET \(url)")
-        
+
         guard let requestURL = URL(string: url) else {
             updateTestStatus(index: index, status: .error, detail: "Invalid URL")
             return
         }
-        
+
         var request = URLRequest(url: requestURL)
         request.httpMethod = "GET"
         request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
@@ -494,18 +488,14 @@ struct ServerTestView: View {
     
     @MainActor
     private func runDeleteTest(index: Int) async {
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        let signature = AppConfig.generateSignature(timestamp: timestamp)
         let url = AppConfig.apiBaseURL + "/delete.php"
-        
+
         log("POST \(url)")
-        
+
         var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
-        request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
-        request.setValue(signature, forHTTPHeaderField: "X-Signature")
+        HMACAuth.applyHeaders(to: &request)
         request.timeoutInterval = 8
         
         let body: [String: Any] = [
@@ -554,8 +544,6 @@ struct ServerTestView: View {
     
     @MainActor
     private func runUpdateExpiryTest(index: Int) async {
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        let signature = AppConfig.generateSignature(timestamp: timestamp)
         let url = AppConfig.apiBaseURL + "/api/projects.php"
 
         log("POST \(url)")
@@ -563,9 +551,7 @@ struct ServerTestView: View {
         var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
-        request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
-        request.setValue(signature, forHTTPHeaderField: "X-Signature")
+        HMACAuth.applyHeaders(to: &request)
         request.timeoutInterval = 8
 
         let body: [String: Any] = [
@@ -702,17 +688,19 @@ struct ServerTestView: View {
     
     @MainActor
     private func runDatabaseTest(index: Int) async {
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        let signature = AppConfig.generateSignature(timestamp: timestamp)
+        let (timestamp, signature) = HMACAuth.generate(
+            apiKey: AppConfig.apiKey,
+            secret: AppConfig.hmacSecretKey
+        )
         let url = AppConfig.apiBaseURL + "/api/projects.php?action=list&page=1&limit=1&user_id=\(UserManager.shared.userId)&timestamp=\(timestamp)&signature=\(signature)"
-        
+
         log("DB Test: GET \(url)")
-        
+
         guard let requestURL = URL(string: url) else {
             updateTestStatus(index: index, status: .error, detail: "Invalid URL")
             return
         }
-        
+
         var request = URLRequest(url: requestURL)
         request.httpMethod = "GET"
         request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")

@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['status' => 'error', 'message' => 'Only POST requests are allowed']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_request', 'message' => 'Only POST requests are allowed']);
     exit;
 }
 
@@ -45,13 +45,13 @@ $config_api_keys = [$env['PUBLISH_API_KEY'] ?? ''];
 
 if (empty($api_key) || !in_array($api_key, $config_api_keys)) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Invalid API key']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_signature', 'message' => 'Invalid API key']);
     exit;
 }
 
 if (empty($timestamp) || !ctype_digit($timestamp)) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Missing timestamp']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_signature', 'message' => 'Missing timestamp']);
     exit;
 }
 
@@ -59,14 +59,14 @@ $ts = (int)$timestamp;
 $now = time();
 if (abs($now - $ts) > 300) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Request expired']);
+    echo json_encode(['status' => 'error', 'code' => 'timestamp_expired', 'message' => 'Request expired']);
     exit;
 }
 
 $expectedSignature = hash_hmac('sha256', $api_key . $timestamp, $env['HMAC_SECRET_KEY'] ?? $api_key);
 if (!hash_equals($expectedSignature, $signature)) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Invalid signature']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_signature', 'message' => 'Invalid signature']);
     exit;
 }
 
@@ -76,7 +76,7 @@ $data = json_decode($input, true);
 
 if (!$data || !isset($data['id'])) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'Missing project id']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_request', 'message' => 'Missing project id']);
     exit;
 }
 
@@ -86,14 +86,14 @@ $userId = $data['user_id'] ?? null;
 // 强制验证用户身份
 if (empty($userId)) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'User ID is required']);
+    echo json_encode(['status' => 'error', 'code' => 'permission_denied', 'message' => 'User ID is required']);
     exit;
 }
 
 // 验证用户ID格式，防止注入攻击
 if (!preg_match('/^[a-zA-Z0-9_-]+$/', $userId)) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'Invalid user ID format']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_request', 'message' => 'Invalid user ID format']);
     exit;
 }
 
@@ -108,7 +108,7 @@ $project = db()->queryOne(
 
 if (!$project) {
     http_response_code(404);
-    echo json_encode(['status' => 'error', 'message' => 'Project not found']);
+    echo json_encode(['status' => 'error', 'code' => 'project_not_found', 'message' => 'Project not found']);
     exit;
 }
 
@@ -117,7 +117,7 @@ if (!$project) {
 if (isset($project['user_id']) && (string)$project['user_id'] !== (string)$userId) {
     error_log("[DELETE] Permission denied: user_id={$userId}, project_owner={$project['user_id']}, project_id={$projectId}, ip=" . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Permission denied']);
+    echo json_encode(['status' => 'error', 'code' => 'permission_denied', 'message' => 'Permission denied']);
     exit;
 }
 
@@ -151,11 +151,11 @@ try {
         error_log("Failed to rollback: " . $rollbackEx->getMessage());
     }
     http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Failed to delete project']);
+    echo json_encode(['status' => 'error', 'code' => 'operation_failed', 'message' => 'Failed to delete project']);
     exit;
 }
 
-echo json_encode(['status' => 'success', 'message' => 'Project deleted']);
+echo json_encode(['status' => 'success', 'code' => 'ok', 'message' => 'Project deleted']);
 
 function safeDeleteDir($dir) {
     if (!is_dir($dir)) return;

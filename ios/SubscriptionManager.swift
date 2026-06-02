@@ -1,7 +1,6 @@
 import Foundation
 import SwiftUI
 import StoreKit
-import CryptoKit
 
 @MainActor
 class SubscriptionManager: ObservableObject {
@@ -183,18 +182,8 @@ class SubscriptionManager: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
-        
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
-        
-        let message = AppConfig.apiKey + timestamp
-        let secret = AppConfig.hmacSecretKey.isEmpty ? AppConfig.apiKey : AppConfig.hmacSecretKey
-        let signature = HMAC<SHA256>.authenticationCode(for: Data(message.utf8), using: SymmetricKey(data: Data(secret.utf8)))
-            .map { String(format: "%02x", $0) }
-            .joined()
-        request.setValue(signature, forHTTPHeaderField: "X-Signature")
-        
+        HMACAuth.applyHeaders(to: &request)
+
         let body: [String: Any] = [
             "user_id": UserManager.shared.userId,
             "is_pro": isPro

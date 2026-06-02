@@ -35,6 +35,7 @@
 		A10000010000000000000028 /* FolderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000028 /* FolderManager.swift */; };
 		A10000010000000000000029 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000029 /* HapticManager.swift */; };
 		A10000010000000000000030 /* NetworkRetryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000030 /* NetworkRetryManager.swift */; };
+		SE1 /* ServerErrorCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = SE2 /* ServerErrorCode.swift */; };
 		A10000010000000000000031 /* PublishConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000031 /* PublishConfigView.swift */; };
 		A10000010000000000000032 /* Templates.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000032 /* Templates.swift */; };
 		A10000010000000000000033 /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000033 /* LanguageManager.swift */; };
@@ -119,6 +120,7 @@
 		H20000010000000000000001 /* PublishHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishHubView.swift; sourceTree = "<group>"; };
 		H20000010000000000000002 /* PublishHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishHistoryManager.swift; sourceTree = "<group>"; };
 		H20000010000000000000003 /* EnhancedPublishResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedPublishResultView.swift; sourceTree = "<group>"; };
+		HA2 /* HMACAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMACAuth.swift; sourceTree = "<group>"; };
 		I20000010000000000000001 /* ZipExportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipExportManager.swift; sourceTree = "<group>"; };
 		I20000010000000000000002 /* GitHubPublishService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubPublishService.swift; sourceTree = "<group>"; };
 		I20000010000000000000003 /* GitHubConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubConfigView.swift; sourceTree = "<group>"; };
@@ -320,6 +322,7 @@
 				A10000010000000000000028 /* FolderManager.swift in Sources */,
 				A10000010000000000000029 /* HapticManager.swift in Sources */,
 				A10000010000000000000030 /* NetworkRetryManager.swift in Sources */,
+				SE1 /* ServerErrorCode.swift in Sources */,
 				A10000010000000000000031 /* PublishConfigView.swift in Sources */,
 				A10000010000000000000032 /* Templates.swift in Sources */,
 				A10000010000000000000033 /* LanguageManager.swift in Sources */,
@@ -470,7 +473,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
@@ -499,7 +502,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;

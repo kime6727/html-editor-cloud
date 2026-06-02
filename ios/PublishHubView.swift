@@ -494,7 +494,19 @@ struct PublishHubView: View {
             } else {
                 await MainActor.run {
                     isPublishing = false
-                    documentManager.toastItem = ToastItem(message: "publish_failed".localized, type: .error)
+                    // 区分业务错误码，给出最合适的提示
+                    let errorCode = cloudService.lastPublishServerErrorCode
+                    let message: String
+                    if errorCode.triggersPaywall {
+                        subscriptionManager.showPaywall = true
+                        message = "pro_required".localized
+                    } else if errorCode == .publishLimitExceeded {
+                        message = "publish_limit_reached".localized
+                        subscriptionManager.showPaywall = true
+                    } else {
+                        message = errorCode.localizedMessage
+                    }
+                    documentManager.toastItem = ToastItem(message: message, type: .error)
                 }
             }
         }

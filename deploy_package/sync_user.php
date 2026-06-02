@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Only POST requests are allowed']);
+    echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Only POST requests are allowed']);
     exit;
 }
 
@@ -43,13 +43,13 @@ $config_api_keys = [$env['PUBLISH_API_KEY'] ?? ''];
 
 if (empty($api_key) || !in_array($api_key, $config_api_keys)) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Invalid API key']);
+    echo json_encode(['success' => false, 'code' => 'invalid_signature', 'message' => 'Invalid API key']);
     exit;
 }
 
 if (empty($timestamp) || !ctype_digit($timestamp)) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Missing timestamp']);
+    echo json_encode(['success' => false, 'code' => 'invalid_signature', 'message' => 'Missing timestamp']);
     exit;
 }
 
@@ -57,14 +57,14 @@ $ts = (int)$timestamp;
 $now = time();
 if (abs($now - $ts) > 300) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Request expired']);
+    echo json_encode(['success' => false, 'code' => 'timestamp_expired', 'message' => 'Request expired']);
     exit;
 }
 
 $expectedSignature = hash_hmac('sha256', $api_key . $timestamp, $env['HMAC_SECRET_KEY'] ?? $api_key);
 if (!hash_equals($expectedSignature, $signature)) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Invalid signature']);
+    echo json_encode(['success' => false, 'code' => 'invalid_signature', 'message' => 'Invalid signature']);
     exit;
 }
 
@@ -73,7 +73,7 @@ $data = json_decode($input, true);
 
 if (!$data || !isset($data['user_id'])) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Missing user_id']);
+    echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Missing user_id']);
     exit;
 }
 
@@ -111,11 +111,12 @@ try {
     
     echo json_encode([
         'success' => true,
+        'code' => 'ok',
         'message' => 'User synced',
         'is_pro' => (bool)$updatedUser['is_pro'],
         'publish_count' => (int)$updatedUser['publish_count']
     ]);
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
 }

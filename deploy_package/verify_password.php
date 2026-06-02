@@ -1,12 +1,20 @@
 <?php
 /**
- * HTML Code Editor - Password Verification API
- * 验证受密码保护的项目访问权限
+ * verify_password.php 已废弃 (deprecated)
+ *
+ * 旧的独立密码验证端点已由 index.php 网关 + password_prompt.html 取代。
+ * index.php 统一使用：
+ *   - $_SESSION['ce_project_access_xxx'] 标记已通过验证
+ *   - 5 次错误锁定 15 分钟（更强的安全策略）
+ *
+ * 旧端点存在的风险：
+ *   - 两套独立限流（10/5min vs 5/15min），安全策略不一致
+ *   - 双实现导致后续维护容易遗漏
+ *
+ * 2026-05-30 迁移：所有密码验证统一走 index.php 网关
  */
 
-session_start();
-
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -15,85 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Only POST allowed']);
-    exit;
-}
-
-require_once __DIR__ . '/database/Database.php';
-
-// Rate limiting for password verification (max 10 attempts per 5 minutes)
-$clientIP = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-$rateLimitKey = 'pwd_verify_' . md5($clientIP);
-$rateLimitFile = __DIR__ . '/data/rate_limit_' . $rateLimitKey . '.json';
-
-$attempts = 0;
-$now = time();
-if (file_exists($rateLimitFile)) {
-    $data = json_decode(file_get_contents($rateLimitFile), true);
-    if ($data && isset($data['attempts']) && isset($data['reset_at'])) {
-        if ($now < $data['reset_at']) {
-            $attempts = $data['attempts'];
-        } else {
-            $attempts = 0;
-        }
-    }
-}
-
-if ($attempts >= 10) {
-    http_response_code(429);
-    echo json_encode(['success' => false, 'message' => 'Too many attempts, please try again later']);
-    exit;
-}
-
-$input = json_decode(file_get_contents('php://input'), true);
-$projectId = $input['project_id'] ?? ($input['slug'] ?? '');
-$password = $input['password'] ?? '';
-
-if (empty($projectId) || empty($password)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => '参数缺失']);
-    exit;
-}
-
-try {
-    // 查询项目
-    $project = db()->queryOne(
-        "SELECT * FROM projects WHERE project_id = ? AND status != 'deleted' LIMIT 1",
-        [$projectId]
-    );
-    
-    if (!$project) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'message' => '项目不存在']);
-        exit;
-    }
-    
-    if (empty($project['access_password'])) {
-        echo json_encode(['success' => true, 'message' => '无需密码']);
-        exit;
-    }
-    
-    // 验证密码
-    if (password_verify($password, $project['access_password'])) {
-        // 密码正确，设置session
-        $projectId = $project['project_id'];
-        $_SESSION['ce_project_access_' . $projectId] = true;
-        $_SESSION['ce_project_access_' . $projectId . '_time'] = time();
-        
-        echo json_encode(['success' => true, 'message' => '验证成功']);
-    } else {
-        // 密码错误
-        echo json_encode(['success' => false, 'message' => '密码错误']);
-        // Track failed attempt
-        $attempts++;
-        $rateLimitData = ['attempts' => $attempts, 'reset_at' => $now + 300];
-        $rateLimitDir = dirname($rateLimitFile);
-        if (!is_dir($rateLimitDir)) mkdir($rateLimitDir, 0755, true);
-        file_put_contents($rateLimitFile, json_encode($rateLimitData), LOCK_EX);
-    }
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => '服务器错误']);
-}
+http_response_code(410); // Gone
+echo json_encode([
+    'status' => 'error',
+    'code' => 'endpoint_removed',
+    'message' => 'verify_password.php is deprecated. Please submit the password form to /{project_id} (handled by index.php)',
+    'new_endpoint' => 'index.php (with password form POST)',
+    'migration_date' => '2026-05-30'
+]);

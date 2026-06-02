@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import CryptoKit
 
 @MainActor
 class CloudService: ObservableObject {
@@ -10,18 +9,16 @@ class CloudService: ObservableObject {
     @Published var lastPublishedUrl: String?
     @Published var error: String?
     @Published var lastPublishErrorType: PublishErrorType?
+    @Published var lastPublishServerErrorCode: ServerErrorCode = .unknown
     
     private let apiUrl = AppConfig.publishEndpoint
     private let deleteUrl = AppConfig.apiBaseURL + "/delete.php"
     
     func deleteProject(_ cloudId: String, userId: String? = nil) async throws {
-        let auth = generateAuthHeaders()
         var request = URLRequest(url: URL(string: deleteUrl)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
-        request.setValue(auth.timestamp, forHTTPHeaderField: "X-Timestamp")
-        request.setValue(auth.signature, forHTTPHeaderField: "X-Signature")
+        HMACAuth.applyHeaders(to: &request)
         
         var body: [String: Any] = ["id": cloudId]
         if let userId = userId {
@@ -36,14 +33,11 @@ class CloudService: ObservableObject {
     }
     
     func updateProjectExpiry(cloudId: String, userId: String, expireDays: Int? = nil, expireMinutes: Int? = nil, makePermanent: Bool = false, accessPassword: String? = nil, removePassword: Bool = false) async -> (success: Bool, expiresAt: String?, isPermanent: Bool, message: String) {
-        let auth = generateAuthHeaders()
         let url = AppConfig.apiBaseURL + "/api/projects.php"
         var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
-        request.setValue(auth.timestamp, forHTTPHeaderField: "X-Timestamp")
-        request.setValue(auth.signature, forHTTPHeaderField: "X-Signature")
+        HMACAuth.applyHeaders(to: &request)
 
         // 计算 expires_at：优先用 expire_days/expireMinutes，否则传 makePermanent
         var expiresAtValue: Any?
@@ -159,18 +153,6 @@ class CloudService: ObservableObject {
         }
     }
 
-    private func generateAuthHeaders() -> (timestamp: String, signature: String) {
-        let apiKey = AppConfig.apiKey
-        let hmacSecret = AppConfig.hmacSecretKey
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        let message = apiKey + timestamp
-        let secret = hmacSecret.isEmpty ? apiKey : hmacSecret
-        let signature = HMAC<SHA256>.authenticationCode(for: Data(message.utf8), using: SymmetricKey(data: Data(secret.utf8)))
-            .map { String(format: "%02x", $0) }
-            .joined()
-        return (timestamp, signature)
-    }
-    
     func publishProjectWithDetails(_ project: HTMLProject, config: PublishConfig = .default) async -> PublishResult? {
         // Verify Pro status before publishing to prevent stale cached state
         await SubscriptionManager.shared.verifyProStatus()
@@ -180,10 +162,9 @@ class CloudService: ObservableObject {
             error = nil
             lastPublishedUrl = nil
             lastPublishErrorType = nil
+            lastPublishServerErrorCode = .unknown
         }
-        
-        let auth = generateAuthHeaders()
-        
+
         let boundary = "Boundary-\(UUID().uuidString)"
         var body = Data()
         
@@ -235,13 +216,11 @@ class CloudService: ObservableObject {
         }
         
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        
+
         var request = URLRequest(url: URL(string: apiUrl)!)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
-        request.setValue(auth.timestamp, forHTTPHeaderField: "X-Timestamp")
-        request.setValue(auth.signature, forHTTPHeaderField: "X-Signature")
+        HMACAuth.applyHeaders(to: &request)
         request.httpBody = body
         
         do {
@@ -273,48 +252,61 @@ class CloudService: ObservableObject {
                         hasPassword: result.hasPassword
                     )
                 } else {
-                    let msg = (try? JSONDecoder().decode(PublishResponse.self, from: data))?.message ?? "publish_failed".localized
-                    await MainActor.run { 
+                    let decoded = try? JSONDecoder().decode(PublishResponse.self, from: data)
+                    let msg = decoded?.message ?? "publish_failed".localized
+                    let code = decoded?.code.flatMap(ServerErrorCode.init(rawValue:)) ?? .unknown
+                    await MainActor.run {
                         error = msg
                         isPublishing = false
                         lastPublishErrorType = .clientError(msg)
+                        lastPublishServerErrorCode = code
                     }
                     return PublishResult(url: "", id: "", shouldClearCloudId: false)
                 }
             case 400:
-                let msg = (try? JSONDecoder().decode(PublishResponse.self, from: data))?.message ?? "publish_bad_request".localized
-                await MainActor.run { 
+                let decoded = try? JSONDecoder().decode(PublishResponse.self, from: data)
+                let msg = decoded?.message ?? "publish_bad_request".localized
+                let code = decoded?.code.flatMap(ServerErrorCode.init(rawValue:)) ?? .unknown
+                await MainActor.run {
                     error = msg
                     isPublishing = false
                     lastPublishErrorType = .clientError(msg)
+                    lastPublishServerErrorCode = code
                 }
                 return PublishResult(url: "", id: "", shouldClearCloudId: true)
             case 403:
-                await MainActor.run { 
-                    error = "publish_auth_failed".localized
+                let decoded = try? JSONDecoder().decode(PublishResponse.self, from: data)
+                let code = decoded?.code.flatMap(ServerErrorCode.init(rawValue:)) ?? .permissionDenied
+                let msg = decoded?.message ?? "publish_auth_failed".localized
+                await MainActor.run {
+                    error = msg
                     isPublishing = false
                     lastPublishErrorType = .serverError
+                    lastPublishServerErrorCode = code
                 }
                 return PublishResult(url: "", id: "", shouldClearCloudId: false)
             case 413:
-                await MainActor.run { 
-                    error = "publish_too_large".localized
+                await MainActor.run {
+                    error = "project_too_large".localized
                     isPublishing = false
-                    lastPublishErrorType = .clientError("publish_too_large".localized)
+                    lastPublishErrorType = .clientError("project_too_large".localized)
+                    lastPublishServerErrorCode = .projectTooLarge
                 }
                 return PublishResult(url: "", id: "", shouldClearCloudId: false)
             case 429:
-                await MainActor.run { 
-                    error = "publish_rate_limited".localized
+                await MainActor.run {
+                    error = "request_too_frequent".localized
                     isPublishing = false
                     lastPublishErrorType = .serverError
+                    lastPublishServerErrorCode = .rateLimited
                 }
                 return PublishResult(url: "", id: "", shouldClearCloudId: false)
             case 500...599:
-                await MainActor.run { 
+                await MainActor.run {
                     error = "publish_server_error".localized
                     isPublishing = false
                     lastPublishErrorType = .serverError
+                    lastPublishServerErrorCode = .unknown
                 }
                 return PublishResult(url: "", id: "", shouldClearCloudId: false)
             default:
@@ -365,11 +357,8 @@ class CloudService: ObservableObject {
         guard let url = urlComponents.url else { return nil }
         
         var request = URLRequest(url: url)
-        let auth = generateAuthHeaders()
-        request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
-        request.setValue(auth.timestamp, forHTTPHeaderField: "X-Timestamp")
-        request.setValue(auth.signature, forHTTPHeaderField: "X-Signature")
-        
+        HMACAuth.applyHeaders(to: &request)
+
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
             return try? JSONDecoder().decode(DetailedStats.self, from: data)
@@ -450,13 +439,14 @@ struct PublishResponse: Codable {
     let expiresAt: String?
     let message: String?
     let hasPassword: Bool
-    
+    let code: String?
+
     enum CodingKeys: String, CodingKey {
-        case status, url, id, message
+        case status, url, id, message, code
         case expiresAt = "expires_at"
         case hasPassword = "has_password"
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         status = try container.decode(String.self, forKey: .status)
@@ -465,6 +455,7 @@ struct PublishResponse: Codable {
         expiresAt = try container.decodeIfPresent(String.self, forKey: .expiresAt)
         message = try container.decodeIfPresent(String.self, forKey: .message)
         hasPassword = (try? container.decode(Bool.self, forKey: .hasPassword)) ?? false
+        code = try? container.decodeIfPresent(String.self, forKey: .code)
     }
 }
 

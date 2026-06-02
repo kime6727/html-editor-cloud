@@ -530,12 +530,14 @@ struct PasswordSettingView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var documentManager: DocumentManager
     @StateObject private var cloudManager = CloudProjectManager.shared
-    
+    @StateObject private var cloudService = CloudService.shared
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
+
     let project: HTMLProject
     let cloudId: String
     let currentPassword: String?
     @Binding var isPresented: Bool
-    
+
     @State private var newPassword = ""
     @State private var confirmPassword = ""
     @State private var isUpdating = false
@@ -721,12 +723,14 @@ struct ExpirySettingView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var documentManager: DocumentManager
     @StateObject private var cloudManager = CloudProjectManager.shared
-    
+    @StateObject private var cloudService = CloudService.shared
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
+
     let project: HTMLProject
     let cloudId: String
     let currentExpiry: Date?
     @Binding var isPresented: Bool
-    
+
     @State private var enableExpiry = false
     @State private var selectedDate = Date().addingTimeInterval(7 * 24 * 60 * 60)
     @State private var isUpdating = false

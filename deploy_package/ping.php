@@ -10,6 +10,7 @@ header('Access-Control-Allow-Headers: Content-Type, X-API-Key, X-Timestamp, X-Si
 
 echo json_encode([
     'status' => 'ok',
+    'code' => 'ok',
     'message' => 'Server is running',
     'timestamp' => date('Y-m-d H:i:s'),
     'server_time' => time(),

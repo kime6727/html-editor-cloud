@@ -10,7 +10,7 @@ header('Access-Control-Allow-Methods: GET');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET' || !isset($_GET['id'])) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'Missing id parameter']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_request', 'message' => 'Missing id parameter']);
     exit;
 }
 
@@ -47,7 +47,8 @@ if (!empty($apiKey) && !empty($timestamp) && !empty($signature)) {
         
         if (abs(time() - (int)$timestamp) > 300 || !hash_equals($expectedSignature, $signature)) {
             http_response_code(403);
-            echo json_encode(['status' => 'error', 'message' => 'Authentication failed']);
+            $authCode = (abs(time() - (int)$timestamp) > 300) ? 'timestamp_expired' : 'invalid_signature';
+            echo json_encode(['status' => 'error', 'code' => $authCode, 'message' => 'Authentication failed']);
             exit;
         }
     }
@@ -60,7 +61,7 @@ $project = db()->queryOne(
 
 if (!$project) {
     http_response_code(404);
-    echo json_encode(['status' => 'error', 'message' => 'Project not found']);
+    echo json_encode(['status' => 'error', 'code' => 'project_not_found', 'message' => 'Project not found']);
     exit;
 }
 
@@ -108,6 +109,7 @@ $todayVisits = (int)($todayResult['cnt'] ?? 0);
 
 echo json_encode([
     'status' => 'success',
+    'code' => 'ok',
     'visit_count' => $project['visit_count'] ?? 0,
     'total_visits' => $project['visit_count'] ?? 0,
     'unique_visitors' => $uniqueVisitors,

@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['status' => 'error', 'message' => 'Only POST requests are allowed']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_request', 'message' => 'Only POST requests are allowed']);
     exit;
 }
 
@@ -117,7 +117,7 @@ function checkRateLimit($config) {
         header("X-RateLimit-Limit: $maxReq");
         header("X-RateLimit-Remaining: 0");
         header("X-RateLimit-Reset: " . ($now + $window));
-        echo json_encode(['status' => 'error', 'message' => 'Rate limit exceeded. Please try again later.']);
+        echo json_encode(['status' => 'error', 'code' => 'rate_limited', 'message' => 'Rate limit exceeded. Please try again later.']);
         exit;
     }
     
@@ -140,13 +140,13 @@ $signature = $_SERVER['HTTP_X_SIGNATURE'] ?? '';
 
 if (empty($api_key) || !in_array($api_key, $config['api_keys'])) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Invalid or missing API key']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_signature', 'message' => 'Invalid or missing API key']);
     exit;
 }
 
 if (empty($timestamp) || !ctype_digit($timestamp)) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Missing or invalid timestamp']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_signature', 'message' => 'Missing or invalid timestamp']);
     exit;
 }
 
@@ -154,13 +154,13 @@ $ts = (int)$timestamp;
 $now = time();
 if (abs($now - $ts) > $config['max_timestamp_diff']) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Request expired or timestamp invalid']);
+    echo json_encode(['status' => 'error', 'code' => 'timestamp_expired', 'message' => 'Request expired or timestamp invalid']);
     exit;
 }
 
 if (empty($signature)) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Missing signature']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_signature', 'message' => 'Missing signature']);
     exit;
 }
 
@@ -169,7 +169,7 @@ $hmacSecret = $env['HMAC_SECRET_KEY'] ?? $api_key;
 $expectedSignature = hash_hmac('sha256', $api_key . $timestamp, $hmacSecret);
 if (!hash_equals($expectedSignature, $signature)) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Invalid signature']);
+    echo json_encode(['status' => 'error', 'code' => 'invalid_signature', 'message' => 'Invalid signature']);
     exit;
 }
 
@@ -183,7 +183,7 @@ if (!is_dir($upload_dir)) {
 $content_length = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
 if ($content_length > $config['max_total_size']) {
     http_response_code(413);
-    echo json_encode(['status' => 'error', 'message' => 'Payload too large. Max ' . ($config['max_total_size'] / 1024 / 1024) . 'MB']);
+    echo json_encode(['status' => 'error', 'code' => 'project_too_large', 'message' => 'Payload too large. Max ' . ($config['max_total_size'] / 1024 / 1024) . 'MB']);
     exit;
 }
 
@@ -251,9 +251,9 @@ if (!$is_pro && $user_id) {
             if (!$existingProject || (string)$existingProject['user_id'] !== (string)$user_id) {
                 http_response_code(403);
                 echo json_encode([
-                    'status' => 'error', 
-                    'message' => 'Permission denied. You can only update your own projects.',
-                    'code' => 'permission_denied'
+                    'status' => 'error',
+                    'code' => 'permission_denied',
+                    'message' => 'Permission denied. You can only update your own projects.'
                 ]);
                 exit;
             }
@@ -274,8 +274,8 @@ if (!$is_pro && $user_id) {
             http_response_code(403);
             echo json_encode([
                 'status' => 'error',
-                'message' => "Monthly publish limit reached ($freeMonthlyLimit projects). Upgrade to Pro for unlimited publishes.",
-                'code' => 'publish_limit_exceeded'
+                'code' => 'publish_limit_exceeded',
+                'message' => "Monthly publish limit reached ($freeMonthlyLimit projects). Upgrade to Pro for unlimited publishes."
             ]);
             exit;
         }
@@ -304,7 +304,7 @@ if ($isMultipart) {
     $projectId = resolveProjectId($id, $config, $is_update, $upload_dir);
     if (is_array($projectId) && isset($projectId['error'])) {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => $projectId['error']]);
+        echo json_encode(['status' => 'error', 'code' => 'invalid_request', 'message' => $projectId['error']]);
         exit;
     }
 
@@ -319,7 +319,7 @@ if ($isMultipart) {
     mkdir($stagingPath, 0755, true);
 
     if (!isset($_FILES['files'])) {
-        echo json_encode(['status' => 'error', 'message' => 'No files received']);
+        echo json_encode(['status' => 'error', 'code' => 'invalid_request', 'message' => 'No files received']);
         exit;
     }
 
@@ -341,7 +341,8 @@ if ($isMultipart) {
         if ($fileSize > $maxSingleFileSize) {
             http_response_code(413);
             echo json_encode([
-                'status' => 'error', 
+                'status' => 'error',
+                'code' => 'project_too_large',
                 'message' => "File '$origName' exceeds maximum size of 10MB"
             ]);
             exit;
@@ -382,13 +383,13 @@ if ($isMultipart) {
     // 总大小二次验证
     if ($totalSize > $config['max_total_size']) {
         http_response_code(413);
-        echo json_encode(['status' => 'error', 'message' => 'Total payload too large. Max ' . ($config['max_total_size'] / 1024 / 1024) . 'MB']);
+        echo json_encode(['status' => 'error', 'code' => 'project_too_large', 'message' => 'Total payload too large. Max ' . ($config['max_total_size'] / 1024 / 1024) . 'MB']);
         exit;
     }
 
     if ($totalFiles === 0) {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Failed to save uploaded files']);
+        echo json_encode(['status' => 'error', 'code' => 'operation_failed', 'message' => 'Failed to save uploaded files']);
         exit;
     }
 
@@ -406,12 +407,12 @@ if ($isMultipart) {
 
     if (($data['action'] ?? '') === 'test') {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Missing files']);
+        echo json_encode(['status' => 'error', 'code' => 'invalid_request', 'message' => 'Missing files']);
         exit;
     }
 
     if (!$data || !isset($data['files'])) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid data payload']);
+        echo json_encode(['status' => 'error', 'code' => 'invalid_request', 'message' => 'Invalid data payload']);
         exit;
     }
 
@@ -423,7 +424,7 @@ if ($isMultipart) {
     $projectId = resolveProjectId($id, $config, $is_update, $upload_dir);
     if (is_array($projectId) && isset($projectId['error'])) {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => $projectId['error']]);
+        echo json_encode(['status' => 'error', 'code' => 'invalid_request', 'message' => $projectId['error']]);
         exit;
     }
 
@@ -468,7 +469,7 @@ if ($isMultipart) {
 
     if ($totalFiles === 0) {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Failed to save uploaded files']);
+        echo json_encode(['status' => 'error', 'code' => 'operation_failed', 'message' => 'Failed to save uploaded files']);
         exit;
     }
 
@@ -496,6 +497,7 @@ if ($expire_days > 0) {
 
 echo json_encode([
     'status' => 'success',
+    'code' => 'ok',
     'url'    => $longUrl,
     'id'     => $projectId,
     'expires_at' => $expiresAt,

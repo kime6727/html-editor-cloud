@@ -1,5 +1,4 @@
 import Foundation
-import CryptoKit
 import SwiftUI
 
 struct CloudPublishedProject: Identifiable, Codable, Equatable {
@@ -87,49 +86,31 @@ class CloudProjectManager: ObservableObject {
     }
     
     // MARK: - HMAC Authentication
-    private func generateAuthHeaders() -> (timestamp: String, signature: String) {
-        let apiKey = AppConfig.apiKey
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        let message = apiKey + timestamp
-        let secret = AppConfig.hmacSecretKey.isEmpty ? apiKey : AppConfig.hmacSecretKey
-        let signature = HMAC<SHA256>.authenticationCode(for: Data(message.utf8), using: SymmetricKey(data: Data(secret.utf8)))
-            .map { String(format: "%02x", $0) }
-            .joined()
-        return (timestamp, signature)
-    }
-    
     private func applyAuthHeaders(to request: inout URLRequest) {
-        let auth = generateAuthHeaders()
-        request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
-        request.setValue(auth.timestamp, forHTTPHeaderField: "X-Timestamp")
-        request.setValue(auth.signature, forHTTPHeaderField: "X-Signature")
+        HMACAuth.applyHeaders(to: &request)
     }
     
     // MARK: - Load Published Projects
     func loadPublishedProjects() async {
         isLoading = true
-        
-        guard var urlComponents = URLComponents(string: "\(apiBaseURL)/api/projects.php") else {
-            isLoading = false
-            return
-        }
-        
-        urlComponents.queryItems = [
-            URLQueryItem(name: "action", value: "list"),
-            URLQueryItem(name: "user_id", value: UserManager.shared.userId)
-        ]
-        
-        guard let url = urlComponents.url else {
-            isLoading = false
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        applyAuthHeaders(to: &request)
-        
+        defer { isLoading = false }
+
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            
+            let data = try await NetworkRetryManager.shared.execute(
+                policy: .exponentialBackoff(maxRetries: 3, baseDelay: 0.8)
+            ) { [apiBaseURL] in
+                var comps = URLComponents(string: "\(apiBaseURL)/api/projects.php")!
+                comps.queryItems = [
+                    URLQueryItem(name: "action", value: "list"),
+                    URLQueryItem(name: "user_id", value: UserManager.shared.userId)
+                ]
+                var request = URLRequest(url: comps.url!)
+                self.applyAuthHeaders(to: &request)
+                request.timeoutInterval = 8
+                let (data, _) = try await URLSession.shared.data(for: request)
+                return data
+            }
+
             if let response = try? JSONDecoder().decode(CloudListResponse.self, from: data) {
                 if response.success {
                     publishedProjects = response.projects.map { pub in
@@ -149,15 +130,18 @@ class CloudProjectManager: ObservableObject {
                             hasPassword: pub.hasPassword
                         )
                     }
+                    errorMessage = nil
                 } else {
                     errorMessage = response.message
                 }
             }
+        } catch NetworkRetryManager.NetworkError.noInternet {
+            errorMessage = "network_offline".localized
+        } catch NetworkRetryManager.NetworkError.maxRetriesExceeded {
+            errorMessage = "network_unstable_retry_failed".localized
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = String(format: "load_failed".localized, error.localizedDescription)
         }
-        
-        isLoading = false
     }
     
     // MARK: - Toggle Project Status

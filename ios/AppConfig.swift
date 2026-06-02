@@ -1,5 +1,4 @@
 import Foundation
-import CryptoKit
 
 enum AppConfig {
     // MARK: - API & Backend
@@ -47,16 +46,5 @@ enum AppConfig {
     // MARK: - HMAC Secret Key (用于签名验证)
     static var hmacSecretKey: String {
         Bundle.main.object(forInfoDictionaryKey: "CE_HMAC_SECRET_KEY") as? String ?? ""
-    }
-    
-    // MARK: - HMAC Signature Generation
-    static func generateSignature(timestamp: String) -> String {
-        let apiKey = AppConfig.apiKey
-        let message = apiKey + timestamp
-        let secret = hmacSecretKey.isEmpty ? apiKey : hmacSecretKey
-        let signature = HMAC<SHA256>.authenticationCode(for: Data(message.utf8), using: SymmetricKey(data: Data(secret.utf8)))
-            .map { String(format: "%02x", $0) }
-            .joined()
-        return signature
     }
 }

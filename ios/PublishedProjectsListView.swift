@@ -74,10 +74,11 @@ struct PublishedProjectsListView: View {
                 }
             )
             .onAppear {
+                manager.attach(documentManager: documentManager)
                 manager.syncFromDocumentManager(documentManager)
             }
             .onChange(of: documentManager.projects) { _, _ in
-                manager.syncFromDocumentManager(documentManager)
+                manager.attach(documentManager: documentManager)
             }
             .alert("confirm_unpublish".localized, isPresented: $showDeleteConfirmation) {
                 Button("cancel".localized, role: .cancel) { }
