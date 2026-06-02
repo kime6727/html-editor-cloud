@@ -37,51 +37,59 @@ class CloudService: ObservableObject {
     
     func updateProjectExpiry(cloudId: String, userId: String, expireDays: Int? = nil, expireMinutes: Int? = nil, makePermanent: Bool = false, accessPassword: String? = nil, removePassword: Bool = false) async -> (success: Bool, expiresAt: String?, isPermanent: Bool, message: String) {
         let auth = generateAuthHeaders()
-        let url = AppConfig.apiBaseURL + "/update_expiry.php"
+        let url = AppConfig.apiBaseURL + "/api/projects.php"
         var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(AppConfig.apiKey, forHTTPHeaderField: "X-API-Key")
         request.setValue(auth.timestamp, forHTTPHeaderField: "X-Timestamp")
         request.setValue(auth.signature, forHTTPHeaderField: "X-Signature")
-        
-        var body: [String: Any] = [
-            "id": cloudId,
-            "user_id": userId
-        ]
-        if let expireDays = expireDays {
-            body["expire_days"] = expireDays
-        }
-        if let expireMinutes = expireMinutes {
-            body["expire_minutes"] = expireMinutes
-        }
+
+        // 计算 expires_at：优先用 expire_days/expireMinutes，否则传 makePermanent
+        var expiresAtValue: Any?
         if makePermanent {
-            body["make_permanent"] = true
+            // 永久：传 0，服务端会存为 null
+            expiresAtValue = 0
+        } else if let expireDays = expireDays, expireDays > 0 {
+            expiresAtValue = Int(Date().timeIntervalSince1970) + expireDays * 86400
+        } else if let expireMinutes = expireMinutes, expireMinutes > 0 {
+            expiresAtValue = Int(Date().timeIntervalSince1970) + expireMinutes * 60
+        } else {
+            // 移除过期（永久移除）：传 NSNull 让 DB 存 null
+            expiresAtValue = NSNull()
         }
-        if let password = accessPassword {
+
+        var body: [String: Any] = [
+            "action": "set_expiry",
+            "project_id": cloudId,
+            "user_id": userId,
+            "expires_at": expiresAtValue as Any
+        ]
+        if let password = accessPassword, !password.isEmpty {
             body["access_password"] = password
         }
         if removePassword {
             body["remove_password"] = true
         }
-        
+
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
             let (data, response) = try await URLSession.shared.data(for: request)
-            
+
             guard let httpResponse = response as? HTTPURLResponse else {
                 return (false, nil, false, "network_error".localized)
             }
-            
+
             if httpResponse.statusCode == 200,
                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               json["status"] as? String == "success" {
+               json["success"] as? Bool == true {
                 let expiresAt = json["expires_at"] as? String
                 let isPermanent = json["is_permanent"] as? Bool ?? false
                 let message = json["message"] as? String ?? "update_success".localized
                 return (true, expiresAt, isPermanent, message)
             } else {
-                let msg = (try? JSONDecoder().decode(PublishResponse.self, from: data))?.message ?? "update_failed".localized
+                let msg = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["message"] as? String
+                    ?? "update_failed".localized
                 return (false, nil, false, msg)
             }
         } catch {

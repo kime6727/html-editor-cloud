@@ -556,10 +556,10 @@ struct ServerTestView: View {
     private func runUpdateExpiryTest(index: Int) async {
         let timestamp = String(Int(Date().timeIntervalSince1970))
         let signature = AppConfig.generateSignature(timestamp: timestamp)
-        let url = AppConfig.apiBaseURL + "/update_expiry.php"
-        
+        let url = AppConfig.apiBaseURL + "/api/projects.php"
+
         log("POST \(url)")
-        
+
         var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -567,11 +567,12 @@ struct ServerTestView: View {
         request.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
         request.setValue(signature, forHTTPHeaderField: "X-Signature")
         request.timeoutInterval = 8
-        
+
         let body: [String: Any] = [
-            "id": "test_expiry_id",
+            "action": "set_expiry",
+            "project_id": "test_expiry_id",
             "user_id": UserManager.shared.userId,
-            "expire_days": 7
+            "expires_at": Int(Date().timeIntervalSince1970) + 7 * 86400
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         

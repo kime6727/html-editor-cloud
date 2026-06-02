@@ -100,7 +100,7 @@ struct PublishHubView: View {
                 }
             }
             .sheet(isPresented: $showPublishConfig) {
-                PublishConfigView(project: project, isPresented: $showPublishConfig) { config in
+                PublishConfigView(project: liveProject, isPresented: $showPublishConfig) { config in
                     performPublish(config: config)
                 }
                 .environmentObject(documentManager)

@@ -256,6 +256,8 @@ function handleSetExpiry() {
     $projectId = $input['project_id'] ?? null;
     $expiresAt = $input['expires_at'] ?? null; // Unix timestamp
     $userId = $input['user_id'] ?? null;
+    $newPassword = $input['access_password'] ?? null;
+    $removePassword = !empty($input['remove_password']) && $input['remove_password'] === true;
 
     if (!$projectId) {
         http_response_code(400);
@@ -297,10 +299,49 @@ function handleSetExpiry() {
             $expireDays = max(0, (int)ceil($requestedDuration / 86400));
         }
 
-        db()->execute(
-            "UPDATE projects SET expires_at = ?, expire_days = ?, updated_at = NOW() WHERE project_id = ?",
-            [$expiryDate, $expireDays, $projectId]
+        // 同时处理密码：哈希后存库；移除则置空
+        $hashedPassword = null;
+        if (!empty($newPassword)) {
+            $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+        }
+
+        // 恢复过期项目（与 update_expiry.php 行为一致）
+        $wasExpired = db()->queryOne(
+            "SELECT status FROM projects WHERE project_id = ?",
+            [$projectId]
         );
+        $restoreStatus = ($wasExpired['status'] ?? '') === 'expired' ? 'active' : null;
+
+        // 拼装动态 UPDATE（仅在传入密码相关参数时才更新 access_password 字段）
+        $sql = "UPDATE projects SET expires_at = ?, expire_days = ?, updated_at = NOW()";
+        $params = [$expiryDate, $expireDays];
+
+        if ($restoreStatus) {
+            $sql .= ", status = ?";
+            $params[] = $restoreStatus;
+        }
+        if ($removePassword) {
+            $sql .= ", access_password = NULL";
+        } elseif ($hashedPassword !== null) {
+            $sql .= ", access_password = ?";
+            $params[] = $hashedPassword;
+        }
+        $sql .= " WHERE project_id = ?";
+        $params[] = $projectId;
+
+        db()->execute($sql, $params);
+
+        // 如果从 expired 恢复，尝试从备份还原文件
+        if ($restoreStatus) {
+            $uploadDir = __DIR__ . '/../pub/';
+            $projectDir = $uploadDir . $projectId;
+            if (is_dir($projectDir)) {
+                foreach (glob($projectDir . '/*.bak') as $bak) {
+                    $original = substr($bak, 0, -4);
+                    @rename($bak, $original);
+                }
+            }
+        }
 
         echo json_encode([
             'success' => true,
