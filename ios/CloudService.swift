@@ -96,7 +96,69 @@ class CloudService: ObservableObject {
             return (false, nil, false, error.localizedDescription)
         }
     }
-    
+
+    func updateProjectExpiryWithRetry(cloudId: String, userId: String, expireDays: Int? = nil, expireMinutes: Int? = nil, makePermanent: Bool = false, accessPassword: String? = nil, removePassword: Bool = false) async throws -> (success: Bool, expiresAt: String?, isPermanent: Bool, message: String) {
+        return try await NetworkRetryManager.shared.execute(
+            policy: .exponentialBackoff(maxRetries: 3, baseDelay: 1.0)
+        ) {
+            await self.updateProjectExpiry(
+                cloudId: cloudId,
+                userId: userId,
+                expireDays: expireDays,
+                expireMinutes: expireMinutes,
+                makePermanent: makePermanent,
+                accessPassword: accessPassword,
+                removePassword: removePassword
+            )
+        }
+    }
+
+    func setAccessPasswordWithRetry(cloudId: String, password: String) async throws -> Bool {
+        return try await NetworkRetryManager.shared.execute(
+            policy: .exponentialBackoff(maxRetries: 3, baseDelay: 1.0)
+        ) {
+            await self.setAccessPassword(cloudId: cloudId, password: password)
+        }
+    }
+
+    func removeAccessPasswordWithRetry(cloudId: String) async throws -> Bool {
+        return try await NetworkRetryManager.shared.execute(
+            policy: .exponentialBackoff(maxRetries: 3, baseDelay: 1.0)
+        ) {
+            await self.removeAccessPassword(cloudId: cloudId)
+        }
+    }
+
+    func unpublishProjectWithRetry(cloudId: String) async throws -> Bool {
+        return try await NetworkRetryManager.shared.execute(
+            policy: .exponentialBackoff(maxRetries: 3, baseDelay: 1.0)
+        ) {
+            await self.unpublishProject(cloudId: cloudId)
+        }
+    }
+
+    // 透传到底层 CloudProjectManager（无 retry 版本仍可用）
+    private func setAccessPassword(cloudId: String, password: String) async -> Bool {
+        return await CloudProjectManager.shared.setAccessPassword(cloudId: cloudId, password: password)
+    }
+    private func removeAccessPassword(cloudId: String) async -> Bool {
+        return await CloudProjectManager.shared.removeAccessPassword(cloudId: cloudId)
+    }
+    private func unpublishProject(cloudId: String) async -> Bool {
+        return await CloudProjectManager.shared.unpublishProject(cloudId: cloudId)
+    }
+    private func setExpiryDate(cloudId: String, expiresAt: Date?) async -> Bool {
+        return await CloudProjectManager.shared.setExpiryDate(cloudId: cloudId, expiresAt: expiresAt)
+    }
+
+    func setExpiryDateWithRetry(cloudId: String, expiresAt: Date?) async throws -> Bool {
+        return try await NetworkRetryManager.shared.execute(
+            policy: .exponentialBackoff(maxRetries: 3, baseDelay: 1.0)
+        ) {
+            await self.setExpiryDate(cloudId: cloudId, expiresAt: expiresAt)
+        }
+    }
+
     private func generateAuthHeaders() -> (timestamp: String, signature: String) {
         let apiKey = AppConfig.apiKey
         let hmacSecret = AppConfig.hmacSecretKey

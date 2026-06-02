@@ -268,9 +268,9 @@ function handleSetExpiry() {
     try {
         requireProjectOwner($projectId, $userId);
 
-        // 查询用户 Pro 状态和当前项目过期时间，免费用户不可改永久/超长过期
+        // 查询用户 Pro 状态
         $owner = db()->queryOne(
-            "SELECT p.expires_at AS current_expires_at, u.is_pro AS user_is_pro
+            "SELECT u.is_pro AS user_is_pro
              FROM projects p
              LEFT JOIN users u ON u.user_id = p.user_id
              WHERE p.project_id = ? LIMIT 1",
@@ -278,25 +278,27 @@ function handleSetExpiry() {
         );
         $isPro = !empty($owner['user_is_pro']);
 
+        // 仅 Pro 用户可修改过期时间/密码：免费用户一律拒绝
+        $isExpiryRequested = ($expiresAt !== null && $expiresAt > 0);
+        $isPasswordRequested = (!empty($newPassword) || $removePassword);
+
+        if (!$isPro && ($isExpiryRequested || $isPasswordRequested)) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Pro subscription required to modify expiry or access password. Please upgrade to Pro.',
+                'code' => 'pro_required'
+            ]);
+            return;
+        }
+
         $expiryDate = null;
         $expireDays = 0;
         $now = time();
 
-        if ($expiresAt !== null && $expiresAt > 0) {
-            $requestedDuration = $expiresAt - $now;
-
-            // 免费用户：超过 1 小时（3600 秒）一律拒绝（含"永久"=2147483647）
-            if (!$isPro && $requestedDuration > 3600) {
-                http_response_code(403);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Free users can only set expiry within 1 hour. Upgrade to Pro for permanent links.'
-                ]);
-                return;
-            }
-
+        if ($isExpiryRequested) {
             $expiryDate = date('Y-m-d H:i:s', $expiresAt);
-            $expireDays = max(0, (int)ceil($requestedDuration / 86400));
+            $expireDays = max(0, (int)ceil(($expiresAt - $now) / 86400));
         }
 
         // 同时处理密码：哈希后存库；移除则置空
@@ -372,14 +374,33 @@ function handleSetPassword() {
     
     try {
         requireProjectOwner($projectId, $userId);
+
+        // 验证用户 Pro 状态：免费用户不能设置/修改访问密码
+        $owner = db()->queryOne(
+            "SELECT u.is_pro AS user_is_pro
+             FROM projects p
+             LEFT JOIN users u ON u.user_id = p.user_id
+             WHERE p.project_id = ? LIMIT 1",
+            [$projectId]
+        );
+        if (empty($owner['user_is_pro'])) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Pro subscription required to set access password. Please upgrade to Pro.',
+                'code' => 'pro_required'
+            ]);
+            return;
+        }
+
         // 使用bcrypt加密密码
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-        
+
         db()->execute(
             "UPDATE projects SET access_password = ?, updated_at = NOW() WHERE project_id = ?",
             [$hashedPassword, $projectId]
         );
-        
+
         echo json_encode([
             'success' => true,
             'message' => 'Password set'
@@ -406,11 +427,30 @@ function handleRemovePassword() {
     
     try {
         requireProjectOwner($projectId, $userId);
+
+        // 验证用户 Pro 状态
+        $owner = db()->queryOne(
+            "SELECT u.is_pro AS user_is_pro
+             FROM projects p
+             LEFT JOIN users u ON u.user_id = p.user_id
+             WHERE p.project_id = ? LIMIT 1",
+            [$projectId]
+        );
+        if (empty($owner['user_is_pro'])) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Pro subscription required to modify access password. Please upgrade to Pro.',
+                'code' => 'pro_required'
+            ]);
+            return;
+        }
+
         db()->execute(
             "UPDATE projects SET access_password = NULL, updated_at = NOW() WHERE project_id = ?",
             [$projectId]
         );
-        
+
         echo json_encode([
             'success' => true,
             'message' => 'Password removed'

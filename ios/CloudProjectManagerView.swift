@@ -5,6 +5,7 @@ struct CloudProjectManagerView: View {
     @EnvironmentObject var documentManager: DocumentManager
     @StateObject private var cloudManager = CloudProjectManager.shared
     @StateObject private var cloudService = CloudService.shared
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     
     let project: HTMLProject
     
@@ -16,6 +17,7 @@ struct CloudProjectManagerView: View {
     @State private var showRedirectSettings = false
     @State private var showVisitLogs = false
     @State private var showLinkPreview = false
+    @State private var showDeleteConfirmation = false
     
     var publishedProject: CloudPublishedProject? {
         cloudManager.publishedProjects.first { $0.projectId == project.id.uuidString }
@@ -172,15 +174,25 @@ struct CloudProjectManagerView: View {
                     
                     Spacer()
                     
-                    Button(action: { showPasswordSheet = true }) {
-                        Text("set".localized)
+                    Button(action: {
+                        // Pro 门控：免费用户引导订阅
+                        if !subscriptionManager.isPro {
+                            subscriptionManager.showPaywall = true
+                            HapticManager.shared.notificationError()
+                            documentManager.toastItem = ToastItem(message: "pro_required_for_password".localized, type: .warning)
+                            return
+                        }
+                        showPasswordSheet = true
+                    }) {
+                        Text(pub.accessPassword != nil ? "change".localized : "set".localized)
                             .font(.caption)
                             .foregroundColor(.white)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
-                            .background(Color.blue)
+                            .background(subscriptionManager.isPro ? Color.blue : Color.gray)
                             .cornerRadius(6)
                     }
+                    .disabled(!subscriptionManager.isPro)
                 }
                 .padding()
                 .background(Color(.systemGray5))
@@ -257,15 +269,25 @@ struct CloudProjectManagerView: View {
                     
                     Spacer()
                     
-                    Button(action: { showExpirySheet = true }) {
+                    Button(action: {
+                        // Pro 门控：免费用户引导订阅
+                        if !subscriptionManager.isPro {
+                            subscriptionManager.showPaywall = true
+                            HapticManager.shared.notificationError()
+                            documentManager.toastItem = ToastItem(message: "pro_required_for_expiry".localized, type: .warning)
+                            return
+                        }
+                        showExpirySheet = true
+                    }) {
                         Text("edit".localized)
                             .font(.caption)
                             .foregroundColor(.white)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
-                            .background(Color.blue)
+                            .background(subscriptionManager.isPro ? Color.blue : Color.gray)
                             .cornerRadius(6)
                     }
+                    .disabled(!subscriptionManager.isPro)
                 }
                 .padding()
                 .background(Color(.systemGray5))
@@ -368,7 +390,7 @@ struct CloudProjectManagerView: View {
                 .font(.headline)
                 .foregroundColor(.red)
             
-            Button(action: { unpublishProject(pub: pub) }) {
+            Button(action: { showDeleteConfirmation = true }) {
                 HStack {
                     Image(systemName: "trash.fill")
                     Text("unpublish_project".localized)
@@ -380,6 +402,14 @@ struct CloudProjectManagerView: View {
                 .padding()
                 .background(Color.red)
                 .cornerRadius(10)
+            }
+            .alert("confirm_unpublish".localized, isPresented: $showDeleteConfirmation) {
+                Button("unpublish".localized, role: .destructive) {
+                    if let pub = publishedProject { unpublishProject(pub: pub) }
+                }
+                Button("cancel".localized, role: .cancel) {}
+            } message: {
+                Text(String(format: "unpublish_confirm_msg".localized, project.name))
             }
         }
         .padding()
@@ -419,6 +449,7 @@ struct CloudProjectManagerView: View {
     }
     
     // MARK: - Actions
+
     private func toggleSharing(pub: CloudPublishedProject) {
         guard let cid = cloudId else { return }
         isUpdating = true
@@ -442,14 +473,28 @@ struct CloudProjectManagerView: View {
     private func unpublishProject(pub: CloudPublishedProject) {
         guard let cid = cloudId else { return }
         Task {
-            let success = await cloudManager.unpublishProject(cloudId: cid)
-            await MainActor.run {
-                if success {
-                    documentManager.toastItem = ToastItem(message: "unpublish_success".localized, type: .success)
-                    dismiss()
-                } else {
-                    documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
+            do {
+                let success = try await cloudService.unpublishProjectWithRetry(cloudId: cid)
+                await MainActor.run {
+                    if success {
+                        HapticManager.shared.notificationSuccess()
+                        documentManager.toastItem = ToastItem(message: "unpublish_success".localized, type: .success)
+                        Task { await cloudManager.loadPublishedProjects() }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { dismiss() }
+                    } else {
+                        HapticManager.shared.notificationError()
+                        documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
+                    }
                 }
+            } catch NetworkRetryManager.NetworkError.noInternet {
+                HapticManager.shared.notificationError()
+                documentManager.toastItem = ToastItem(message: "network_offline".localized, type: .error)
+            } catch NetworkRetryManager.NetworkError.maxRetriesExceeded {
+                HapticManager.shared.notificationError()
+                documentManager.toastItem = ToastItem(message: "network_unstable_retry_failed".localized, type: .error)
+            } catch {
+                HapticManager.shared.notificationError()
+                documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
             }
         }
     }
@@ -590,34 +635,82 @@ struct PasswordSettingView: View {
     }
     
     private func savePassword() {
+        // Pro 门控
+        guard subscriptionManager.isPro else {
+            HapticManager.shared.notificationError()
+            documentManager.toastItem = ToastItem(message: "pro_required_for_password".localized, type: .warning)
+            subscriptionManager.showPaywall = true
+            return
+        }
+
         isUpdating = true
         Task {
-            let success = await cloudManager.setAccessPassword(
-                cloudId: cloudId,
-                password: newPassword
-            )
-            await MainActor.run {
-                isUpdating = false
-                if success {
-                    documentManager.toastItem = ToastItem(message: "password_set_success".localized, type: .success)
-                    dismiss()
-                } else {
+            do {
+                let success = try await cloudService.setAccessPasswordWithRetry(cloudId: cloudId, password: newPassword)
+                await MainActor.run {
+                    isUpdating = false
+                    if success {
+                        HapticManager.shared.notificationSuccess()
+                        documentManager.toastItem = ToastItem(message: "password_set_success".localized, type: .success)
+                        dismiss()
+                    } else {
+                        HapticManager.shared.notificationError()
+                        documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
+                    }
+                }
+            } catch NetworkRetryManager.NetworkError.noInternet {
+                await MainActor.run {
+                    isUpdating = false
+                    HapticManager.shared.notificationError()
+                    documentManager.toastItem = ToastItem(message: "network_offline".localized, type: .error)
+                }
+            } catch NetworkRetryManager.NetworkError.maxRetriesExceeded {
+                await MainActor.run {
+                    isUpdating = false
+                    HapticManager.shared.notificationError()
+                    documentManager.toastItem = ToastItem(message: "network_unstable_retry_failed".localized, type: .error)
+                }
+            } catch {
+                await MainActor.run {
+                    isUpdating = false
+                    HapticManager.shared.notificationError()
                     documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
                 }
             }
         }
     }
-    
+
     private func removePassword() {
+        // Pro 门控
+        guard subscriptionManager.isPro else {
+            HapticManager.shared.notificationError()
+            documentManager.toastItem = ToastItem(message: "pro_required_for_password".localized, type: .warning)
+            subscriptionManager.showPaywall = true
+            return
+        }
+
         Task {
-            let success = await cloudManager.removeAccessPassword(cloudId: cloudId)
-            await MainActor.run {
-                if success {
-                    documentManager.toastItem = ToastItem(message: "password_removed".localized, type: .success)
-                    dismiss()
-                } else {
-                    documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
+            do {
+                let success = try await cloudService.removeAccessPasswordWithRetry(cloudId: cloudId)
+                await MainActor.run {
+                    if success {
+                        HapticManager.shared.notificationSuccess()
+                        documentManager.toastItem = ToastItem(message: "password_removed".localized, type: .success)
+                        dismiss()
+                    } else {
+                        HapticManager.shared.notificationError()
+                        documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
+                    }
                 }
+            } catch NetworkRetryManager.NetworkError.noInternet {
+                HapticManager.shared.notificationError()
+                documentManager.toastItem = ToastItem(message: "network_offline".localized, type: .error)
+            } catch NetworkRetryManager.NetworkError.maxRetriesExceeded {
+                HapticManager.shared.notificationError()
+                documentManager.toastItem = ToastItem(message: "network_unstable_retry_failed".localized, type: .error)
+            } catch {
+                HapticManager.shared.notificationError()
+                documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
             }
         }
     }
@@ -720,38 +813,82 @@ struct ExpirySettingView: View {
     }
     
     private func saveExpiry() {
+        // Pro 门控
+        guard subscriptionManager.isPro else {
+            HapticManager.shared.notificationError()
+            documentManager.toastItem = ToastItem(message: "pro_required_for_expiry".localized, type: .warning)
+            subscriptionManager.showPaywall = true
+            return
+        }
+
         isUpdating = true
         Task {
-            let expiry = enableExpiry ? selectedDate : nil
-            let success = await cloudManager.setExpiryDate(
-                cloudId: cloudId,
-                expiresAt: expiry
-            )
-            await MainActor.run {
-                isUpdating = false
-                if success {
-                    documentManager.toastItem = ToastItem(message: "expiry_updated".localized, type: .success)
-                    dismiss()
-                } else {
+            do {
+                let expiry = enableExpiry ? selectedDate : nil
+                let success = try await cloudService.setExpiryDateWithRetry(cloudId: cloudId, expiresAt: expiry)
+                await MainActor.run {
+                    isUpdating = false
+                    if success {
+                        HapticManager.shared.notificationSuccess()
+                        documentManager.toastItem = ToastItem(message: "expiry_updated".localized, type: .success)
+                        dismiss()
+                    } else {
+                        HapticManager.shared.notificationError()
+                        documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
+                    }
+                }
+            } catch NetworkRetryManager.NetworkError.noInternet {
+                await MainActor.run {
+                    isUpdating = false
+                    HapticManager.shared.notificationError()
+                    documentManager.toastItem = ToastItem(message: "network_offline".localized, type: .error)
+                }
+            } catch NetworkRetryManager.NetworkError.maxRetriesExceeded {
+                await MainActor.run {
+                    isUpdating = false
+                    HapticManager.shared.notificationError()
+                    documentManager.toastItem = ToastItem(message: "network_unstable_retry_failed".localized, type: .error)
+                }
+            } catch {
+                await MainActor.run {
+                    isUpdating = false
+                    HapticManager.shared.notificationError()
                     documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
                 }
             }
         }
     }
-    
+
     private func removeExpiry() {
+        guard subscriptionManager.isPro else {
+            HapticManager.shared.notificationError()
+            documentManager.toastItem = ToastItem(message: "pro_required_for_expiry".localized, type: .warning)
+            subscriptionManager.showPaywall = true
+            return
+        }
+
         Task {
-            let success = await cloudManager.setExpiryDate(
-                cloudId: cloudId,
-                expiresAt: nil
-            )
-            await MainActor.run {
-                if success {
-                    documentManager.toastItem = ToastItem(message: "expiry_removed".localized, type: .success)
-                    dismiss()
-                } else {
-                    documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
+            do {
+                let success = try await cloudService.setExpiryDateWithRetry(cloudId: cloudId, expiresAt: nil)
+                await MainActor.run {
+                    if success {
+                        HapticManager.shared.notificationSuccess()
+                        documentManager.toastItem = ToastItem(message: "expiry_removed".localized, type: .success)
+                        dismiss()
+                    } else {
+                        HapticManager.shared.notificationError()
+                        documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
+                    }
                 }
+            } catch NetworkRetryManager.NetworkError.noInternet {
+                HapticManager.shared.notificationError()
+                documentManager.toastItem = ToastItem(message: "network_offline".localized, type: .error)
+            } catch NetworkRetryManager.NetworkError.maxRetriesExceeded {
+                HapticManager.shared.notificationError()
+                documentManager.toastItem = ToastItem(message: "network_unstable_retry_failed".localized, type: .error)
+            } catch {
+                HapticManager.shared.notificationError()
+                documentManager.toastItem = ToastItem(message: "operation_failed".localized, type: .error)
             }
         }
     }
