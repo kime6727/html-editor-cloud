@@ -30,7 +30,7 @@ PUBLISH_API_KEY=f7a2b9c3e1d6e5f8a0b9c2d1e4f7a2b9
 
 **方式1：使用SCP（推荐）**
 ```bash
-scp production_deploy.tar.gz user@server:/path/to/html.weburl.cloudns.be/
+scp production_deploy.tar.gz user@server:/path/to/html.niceapp.eu.cc/
 ```
 
 **方式2：使用FTP客户端**
@@ -47,7 +47,7 @@ SSH登录服务器后执行：
 
 ```bash
 # 进入网站目录
-cd /path/to/html.weburl.cloudns.be/
+cd /path/to/html.niceapp.eu.cc/
 
 # 备份现有文件（如果有）
 tar -czf backup_$(date +%Y%m%d_%H%M%S).tar.gz . 2>/dev/null || true
@@ -101,16 +101,16 @@ mysql -u your_user -p your_database < database/schema.sql
 
 ```bash
 # 测试1：诊断脚本
-curl https://html.weburl.cloudns.be/test_publish.php
+curl https://html.niceapp.eu.cc/test_publish.php
 
 # 测试2：数据库连接
-curl https://html.weburl.cloudns.be/test/db_test.php
+curl https://html.niceapp.eu.cc/test/db_test.php
 
 # 测试3：API端点（返回403正常，说明服务器工作）
-curl -I https://html.weburl.cloudns.be/publish.php
+curl -I https://html.niceapp.eu.cc/publish.php
 
 # 测试4：项目管理API
-curl -I https://html.weburl.cloudns.be/api/projects.php
+curl -I https://html.niceapp.eu.cc/api/projects.php
 ```
 
 ### 第七步：iOS应用测试
@@ -125,7 +125,7 @@ curl -I https://html.weburl.cloudns.be/api/projects.php
    - 观察发布过程
 
 3. **验证结果**
-   - 检查返回的URL格式：`https://html.weburl.cloudns.be/pub/xxxxx/index.html`
+   - 检查返回的URL格式：`https://html.niceapp.eu.cc/pub/xxxxx/index.html`
    - 点击URL在应用内预览
    - 复制URL在Safari中打开
    - 验证内容和样式都正确显示
@@ -191,7 +191,7 @@ ls -la pub/
 ls -la pub/ | tail -5
 
 # 3. 测试直接访问
-curl https://html.weburl.cloudns.be/pub/项目ID/index.html
+curl https://html.niceapp.eu.cc/pub/项目ID/index.html
 ```
 
 **可能原因**：
@@ -393,9 +393,9 @@ crontab -e
 完成所有步骤后，你的云端发布功能应该已经在线上正常运行了！
 
 **测试URL示例**：
-- API: https://html.weburl.cloudns.be/publish.php
-- 项目: https://html.weburl.cloudns.be/pub/xxxxx/index.html
-- 短链: https://html.weburl.cloudns.be/p/xxxxx
+- API: https://html.niceapp.eu.cc/publish.php
+- 项目: https://html.niceapp.eu.cc/pub/xxxxx/index.html
+- 短链: https://html.niceapp.eu.cc/p/xxxxx
 
 有任何问题随时查看错误日志或联系技术支持！
 
@@ -403,5 +403,5 @@ crontab -e
 
 **部署日期**: ___________  
 **部署人**: ___________  
-**服务器**: https://html.weburl.cloudns.be  
+**服务器**: https://html.niceapp.eu.cc  
 **状态**: ⬜ 待部署 / ⬜ 部署中 / ⬜ 已完成

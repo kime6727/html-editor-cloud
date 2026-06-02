@@ -166,7 +166,7 @@ INSERT INTO `system_config` (`config_key`, `config_value`, `description`) VALUES
 ('maintenance_mode', '0', '维护模式(0=关闭,1=开启)'),
 ('max_upload_size', '10485760', '最大上传大小(字节)'),
 ('free_user_expire_minutes', '60', '免费用户过期分钟数（1小时）'),
-('default_domain', 'https://html.weburl.cloudns.be', '默认域名'),
+('default_domain', 'https://html.niceapp.eu.cc', '默认域名'),
 ('enable_realtime_expiry_check', '1', '启用实时过期检查（通过index.php网关）'),
 ('enable_password_protection', '1', '启用密码保护功能'),
 ('enable_visit_tracking', '1', '启用访问日志记录'),

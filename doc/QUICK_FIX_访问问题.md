@@ -10,7 +10,7 @@
 
 `ios/AppConfig.swift` 中的配置指向远程服务器：
 ```swift
-static let apiBaseURL = "https://html.weburl.cloudns.be/"
+static let apiBaseURL = "https://html.niceapp.eu.cc/"
 ```
 
 但你的文件实际上传到了**本地数据库和本地文件系统**，所以访问远程URL当然找不到文件。
@@ -58,14 +58,14 @@ static let publishAPIBaseURL = "http://localhost:8080"
 
 ### 方案B：部署到远程服务器
 
-如果你想使用远程服务器 `https://html.weburl.cloudns.be/`：
+如果你想使用远程服务器 `https://html.niceapp.eu.cc/`：
 
 #### 步骤1：上传后端文件
 
 ```bash
 # 上传所有后端文件到服务器
-scp -r backend/* user@html.weburl.cloudns.be:/path/to/backend/
-scp -r pub/* user@html.weburl.cloudns.be:/path/to/pub/
+scp -r backend/* user@html.niceapp.eu.cc:/path/to/backend/
+scp -r pub/* user@html.niceapp.eu.cc:/path/to/pub/
 ```
 
 #### 步骤2：配置服务器
@@ -83,21 +83,21 @@ scp -r pub/* user@html.weburl.cloudns.be:/path/to/pub/
 mysqldump -u root -p html_editor > backup.sql
 
 # 导入到远程服务器
-mysql -h html.weburl.cloudns.be -u user -p database_name < backup.sql
+mysql -h html.niceapp.eu.cc -u user -p database_name < backup.sql
 ```
 
 #### 步骤4：测试远程服务器
 
 ```bash
-curl https://html.weburl.cloudns.be/backend/test_publish.php
+curl https://html.niceapp.eu.cc/backend/test_publish.php
 ```
 
 #### 步骤5：恢复iOS配置
 
 将 `ios/AppConfig.swift` 改回：
 ```swift
-static let apiBaseURL = "https://html.weburl.cloudns.be/"
-static let publishAPIBaseURL = "https://html.weburl.cloudns.be"
+static let apiBaseURL = "https://html.niceapp.eu.cc/"
+static let publishAPIBaseURL = "https://html.niceapp.eu.cc"
 ```
 
 ## 当前状态

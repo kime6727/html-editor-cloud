@@ -3,7 +3,7 @@
 ===========================================
 
 1. 上传所有文件到服务器根目录
-   目标: https://html.weburl.cloudns.be 绑定的目录
+   目标: https://html.niceapp.eu.cc 绑定的目录
 
 2. 编辑 .env 文件
    填入真实的数据库配置信息
@@ -19,10 +19,10 @@
    mysql -u user -p database_name < schema.sql
 
 5. 测试
-   curl https://html.weburl.cloudns.be/test_publish.php
+   curl https://html.niceapp.eu.cc/test_publish.php
 
 6. 验证
-   - 访问 https://html.weburl.cloudns.be/test_publish.php
+   - 访问 https://html.niceapp.eu.cc/test_publish.php
    - 在iOS应用中测试发布功能
 
 ===========================================

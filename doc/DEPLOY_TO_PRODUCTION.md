@@ -4,7 +4,7 @@
 
 ## 服务器信息
 
-- **域名**: https://html.weburl.cloudns.be
+- **域名**: https://html.niceapp.eu.cc
 - **绑定目录**: `/backend` (网站根目录)
 - **环境**: PHP + MySQL
 - **目标**: 真实线上测试全流程
@@ -73,13 +73,13 @@ $pubDir = $scriptDir . '/pub/';     // 同级目录
 
 ```bash
 # 方式1：使用SCP
-scp -r deploy_package/* user@server:/path/to/html.weburl.cloudns.be/
+scp -r deploy_package/* user@server:/path/to/html.niceapp.eu.cc/
 
 # 方式2：使用FTP客户端
 # 使用FileZilla等工具上传 deploy_package/* 到服务器根目录
 
 # 方式3：使用rsync
-rsync -avz --progress deploy_package/ user@server:/path/to/html.weburl.cloudns.be/
+rsync -avz --progress deploy_package/ user@server:/path/to/html.niceapp.eu.cc/
 ```
 
 ### 步骤4：配置.env文件
@@ -125,13 +125,13 @@ mysql -u your_user -p your_database < /tmp/schema.sql
 
 ```bash
 # 测试1：检查PHP是否工作
-curl https://html.weburl.cloudns.be/test_publish.php
+curl https://html.niceapp.eu.cc/test_publish.php
 
 # 测试2：检查API（会返回403，说明工作正常）
-curl https://html.weburl.cloudns.be/publish.php
+curl https://html.niceapp.eu.cc/publish.php
 
 # 测试3：检查数据库连接
-curl https://html.weburl.cloudns.be/test/db_test.php
+curl https://html.niceapp.eu.cc/test/db_test.php
 ```
 
 ## 快速部署脚本
@@ -189,7 +189,7 @@ echo "2. 在服务器上解压: tar -xzf production_deploy.tar.gz"
 echo "3. 编辑 .env 文件配置数据库"
 echo "4. 设置权限: chmod 777 pub/"
 echo "5. 导入数据库结构"
-echo "6. 测试: curl https://html.weburl.cloudns.be/test_publish.php"
+echo "6. 测试: curl https://html.niceapp.eu.cc/test_publish.php"
 ```
 
 ## 关键路径修改
@@ -250,10 +250,10 @@ $uploadDir = __DIR__ . '/pub/';
 
 部署后的URL结构：
 
-- **API端点**: https://html.weburl.cloudns.be/publish.php
-- **项目管理**: https://html.weburl.cloudns.be/api/projects.php
-- **已发布项目**: https://html.weburl.cloudns.be/pub/{project_id}/index.html
-- **短链访问**: https://html.weburl.cloudns.be/p/{slug}
+- **API端点**: https://html.niceapp.eu.cc/publish.php
+- **项目管理**: https://html.niceapp.eu.cc/api/projects.php
+- **已发布项目**: https://html.niceapp.eu.cc/pub/{project_id}/index.html
+- **短链访问**: https://html.niceapp.eu.cc/p/{slug}
 
 ## 验证清单
 
@@ -263,21 +263,21 @@ $uploadDir = __DIR__ . '/pub/';
 
 ```bash
 # 1. 检查文件结构
-ls -la /path/to/html.weburl.cloudns.be/
+ls -la /path/to/html.niceapp.eu.cc/
 # 应该看到: publish.php, api/, database/, pub/, .env
 
 # 2. 检查pub目录权限
-ls -ld /path/to/html.weburl.cloudns.be/pub/
+ls -ld /path/to/html.niceapp.eu.cc/pub/
 # 应该是: drwxrwxrwx
 
 # 3. 测试PHP
-curl https://html.weburl.cloudns.be/test_publish.php
+curl https://html.niceapp.eu.cc/test_publish.php
 
 # 4. 测试数据库连接
-curl https://html.weburl.cloudns.be/test/db_test.php
+curl https://html.niceapp.eu.cc/test/db_test.php
 
 # 5. 测试API（返回403正常）
-curl -I https://html.weburl.cloudns.be/publish.php
+curl -I https://html.niceapp.eu.cc/publish.php
 ```
 
 ### iOS应用验证
@@ -401,7 +401,7 @@ echo json_encode([
 ?>
 
 # 定期检查
-curl https://html.weburl.cloudns.be/health.php
+curl https://html.niceapp.eu.cc/health.php
 ```
 
 ---

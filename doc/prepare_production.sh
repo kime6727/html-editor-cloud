@@ -6,7 +6,7 @@ set -e  # 遇到错误立即退出
 
 echo "=========================================="
 echo "  准备生产环境部署包"
-echo "  目标: https://html.weburl.cloudns.be"
+echo "  目标: https://html.niceapp.eu.cc"
 echo "=========================================="
 echo ""
 
@@ -84,7 +84,7 @@ cat > deploy_package/DEPLOY_INSTRUCTIONS.txt << 'EOF'
 ===========================================
 
 1. 上传所有文件到服务器根目录
-   目标: https://html.weburl.cloudns.be 绑定的目录
+   目标: https://html.niceapp.eu.cc 绑定的目录
 
 2. 编辑 .env 文件
    填入真实的数据库配置信息
@@ -100,10 +100,10 @@ cat > deploy_package/DEPLOY_INSTRUCTIONS.txt << 'EOF'
    mysql -u user -p database_name < schema.sql
 
 5. 测试
-   curl https://html.weburl.cloudns.be/test_publish.php
+   curl https://html.niceapp.eu.cc/test_publish.php
 
 6. 验证
-   - 访问 https://html.weburl.cloudns.be/test_publish.php
+   - 访问 https://html.niceapp.eu.cc/test_publish.php
    - 在iOS应用中测试发布功能
 
 ===========================================
@@ -133,7 +133,7 @@ echo "1️⃣  编辑数据库配置:"
 echo "   nano deploy_package/.env"
 echo ""
 echo "2️⃣  上传到服务器:"
-echo "   scp production_deploy.tar.gz user@server:/path/to/html.weburl.cloudns.be/"
+echo "   scp production_deploy.tar.gz user@server:/path/to/html.niceapp.eu.cc/"
 echo ""
 echo "3️⃣  在服务器上解压:"
 echo "   tar -xzf production_deploy.tar.gz"
@@ -143,6 +143,6 @@ echo "   chmod 777 pub/"
 echo "   chmod 600 .env"
 echo ""
 echo "5️⃣  测试:"
-echo "   curl https://html.weburl.cloudns.be/test_publish.php"
+echo "   curl https://html.niceapp.eu.cc/test_publish.php"
 echo ""
 echo "=========================================="

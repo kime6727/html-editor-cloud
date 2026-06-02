@@ -236,7 +236,7 @@ INSERT IGNORE INTO `system_config` (`config_key`, `config_value`, `description`)
 ('max_single_file_size', '10485760', '单个文件最大字节数 (10MB)'),
 ('free_user_expire_minutes', '60', '免费用户过期分钟数 (1小时)'),
 ('free_user_monthly_publish_limit', '1', '免费用户每月发布次数限制'),
-('default_domain', 'https://html.weburl.cloudns.be', '默认站点域名'),
+('default_domain', 'https://html.niceapp.eu.cc', '默认站点域名'),
 ('enable_realtime_expiry_check', '1', '启用实时过期检查 (index.php网关)'),
 ('enable_password_protection', '1', '启用访问密码保护功能'),
 ('enable_visit_tracking', '1', '启用访问日志记录'),

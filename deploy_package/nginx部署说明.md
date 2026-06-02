@@ -5,7 +5,7 @@
 - Nginx 1.18+
 - PHP 7.4+ (PHP-FPM)
 - MySQL 5.7+ / MariaDB 10.3+
-- 域名: https://html.weburl.cloudns.be
+- 域名: https://html.niceapp.eu.cc
 
 ---
 
@@ -39,7 +39,7 @@ sudo nano /etc/nginx/sites-available/html-editor
 ```nginx
 server {
     listen 80;
-    server_name html.weburl.cloudns.be;
+    server_name html.niceapp.eu.cc;
     
     # 网站根目录
     root /var/www/html;  # ← 修改为你的实际路径
@@ -195,7 +195,7 @@ sudo find /var/www/html -name "*.php" -exec chmod 644 {} \;
 sudo apt install certbot python3-certbot-nginx
 
 # 获取 SSL 证书
-sudo certbot --nginx -d html.weburl.cloudns.be
+sudo certbot --nginx -d html.niceapp.eu.cc
 
 # 自动续期
 sudo crontab -e
@@ -224,7 +224,7 @@ crontab -e
 
 ```bash
 # 测试发布 API
-curl -X POST https://html.weburl.cloudns.be/publish.php \
+curl -X POST https://html.niceapp.eu.cc/publish.php \
   -H "X-API-Key: your_api_key" \
   -H "X-Timestamp: $(date +%s)" \
   -H "X-Signature: your_signature" \
@@ -232,30 +232,30 @@ curl -X POST https://html.weburl.cloudns.be/publish.php \
   -F "files[]=@index.html"
 
 # 测试统计 API
-curl https://html.weburl.cloudns.be/stats.php?id=abc12345
+curl https://html.niceapp.eu.cc/stats.php?id=abc12345
 
 # 访问发布的项目（应该通过网关）
-curl -I https://html.weburl.cloudns.be/pub/abc12345/index.html
+curl -I https://html.niceapp.eu.cc/pub/abc12345/index.html
 ```
 
 ### 2. 过期检查测试
 
 ```bash
 # 访问项目（未过期）→ 应返回 200
-curl -I https://html.weburl.cloudns.be/pub/abc12345/index.html
+curl -I https://html.niceapp.eu.cc/pub/abc12345/index.html
 
 # 修改数据库使项目过期
 mysql -u your_user -p -e "UPDATE html_editor.projects SET expires_at = NOW() - INTERVAL 1 HOUR WHERE project_id = 'abc12345';"
 
 # 再次访问 → 应返回 410 (Gone) 并显示过期页面
-curl -I https://html.weburl.cloudns.be/pub/abc12345/index.html
+curl -I https://html.niceapp.eu.cc/pub/abc12345/index.html
 ```
 
 ### 3. 密码保护测试
 
 ```bash
 # 发布带密码的项目
-curl -X POST https://html.weburl.cloudns.be/publish.php \
+curl -X POST https://html.niceapp.eu.cc/publish.php \
   -H "X-API-Key: your_api_key" \
   -H "X-Timestamp: $(date +%s)" \
   -H "X-Signature: your_signature" \
@@ -264,15 +264,15 @@ curl -X POST https://html.weburl.cloudns.be/publish.php \
   -F "files[]=@index.html"
 
 # 访问项目 → 应显示密码输入页面
-curl https://html.weburl.cloudns.be/pub/abc12345/index.html
+curl https://html.niceapp.eu.cc/pub/abc12345/index.html
 
 # POST 密码访问
-curl -X POST https://html.weburl.cloudns.be/pub/abc12345/index.html \
+curl -X POST https://html.niceapp.eu.cc/pub/abc12345/index.html \
   -d "password=secret123" \
   -c cookies.txt
 
 # 使用已验证的 cookie 访问
-curl -b cookies.txt https://html.weburl.cloudns.be/pub/abc12345/index.html
+curl -b cookies.txt https://html.niceapp.eu.cc/pub/abc12345/index.html
 ```
 
 ---

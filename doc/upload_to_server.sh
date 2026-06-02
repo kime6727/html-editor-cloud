@@ -10,7 +10,7 @@ echo ""
 # 服务器配置（请根据实际情况修改）
 SERVER_USER="your_username"
 SERVER_HOST="your_server_ip_or_domain"
-SERVER_PATH="/path/to/html.weburl.cloudns.be"
+SERVER_PATH="/path/to/html.niceapp.eu.cc"
 
 echo "⚠️  请先配置服务器信息："
 echo "   编辑此脚本，修改以下变量："
@@ -48,7 +48,7 @@ if [ $? -eq 0 ]; then
     echo "nano .env  # 编辑数据库配置"
     echo "chmod 777 pub/"
     echo "chmod 600 .env"
-    echo "curl https://html.weburl.cloudns.be/test_publish.php"
+    echo "curl https://html.niceapp.eu.cc/test_publish.php"
 else
     echo "❌ 上传失败"
     exit 1

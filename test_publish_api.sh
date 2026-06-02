@@ -3,7 +3,7 @@
 # 测试发布API
 API_KEY="zheshimiyao112233"
 HMAC_SECRET="zheshimiyao112233"
-BASE_URL="https://html.weburl.cloudns.be"
+BASE_URL="https://html.niceapp.eu.cc"
 TIMESTAMP=$(date +%s)
 
 # 生成HMAC签名
