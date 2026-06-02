@@ -205,7 +205,7 @@ struct ServerTestView: View {
         await withTaskGroup(of: Void.self) { group in
             for (index, testDef) in testDefinitions.enumerated() {
                 group.addTask { @MainActor in
-                    await testResults.append(TestResult(name: testDef.0, status: .running, detail: "Testing...", duration: nil))
+                    testResults.append(TestResult(name: testDef.0, status: .running, detail: "Testing...", duration: nil))
                     let startTime = Date()
                     await testDef.1(index)
                     let duration = Date().timeIntervalSince(startTime)

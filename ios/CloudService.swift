@@ -155,7 +155,7 @@ class CloudService: ObservableObject {
 
     func publishProjectWithDetails(_ project: HTMLProject, config: PublishConfig = .default) async -> PublishResult? {
         // Verify Pro status before publishing to prevent stale cached state
-        await SubscriptionManager.shared.verifyProStatus()
+        _ = await SubscriptionManager.shared.verifyProStatus()
 
         await MainActor.run {
             isPublishing = true
@@ -254,7 +254,7 @@ class CloudService: ObservableObject {
                 } else {
                     let decoded = try? JSONDecoder().decode(PublishResponse.self, from: data)
                     let msg = decoded?.message ?? "publish_failed".localized
-                    let code = decoded?.code.flatMap(ServerErrorCode.init(rawValue:)) ?? .unknown
+                    let code: ServerErrorCode = decoded?.code.flatMap { ServerErrorCode(rawValue: $0) } ?? .unknown
                     await MainActor.run {
                         error = msg
                         isPublishing = false
@@ -266,7 +266,7 @@ class CloudService: ObservableObject {
             case 400:
                 let decoded = try? JSONDecoder().decode(PublishResponse.self, from: data)
                 let msg = decoded?.message ?? "publish_bad_request".localized
-                let code = decoded?.code.flatMap(ServerErrorCode.init(rawValue:)) ?? .unknown
+                let code: ServerErrorCode = decoded?.code.flatMap { ServerErrorCode(rawValue: $0) } ?? .unknown
                 await MainActor.run {
                     error = msg
                     isPublishing = false
@@ -276,7 +276,7 @@ class CloudService: ObservableObject {
                 return PublishResult(url: "", id: "", shouldClearCloudId: true)
             case 403:
                 let decoded = try? JSONDecoder().decode(PublishResponse.self, from: data)
-                let code = decoded?.code.flatMap(ServerErrorCode.init(rawValue:)) ?? .permissionDenied
+                let code: ServerErrorCode = decoded?.code.flatMap { ServerErrorCode(rawValue: $0) } ?? .permissionDenied
                 let msg = decoded?.message ?? "publish_auth_failed".localized
                 await MainActor.run {
                     error = msg

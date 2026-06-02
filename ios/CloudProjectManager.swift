@@ -95,6 +95,9 @@ class CloudProjectManager: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
+        // 在主 actor 上获取 userId 一次，避免在 @Sendable 闭包内访问 main-actor isolated 属性
+        let userId = await MainActor.run { UserManager.shared.userId }
+
         do {
             let data = try await NetworkRetryManager.shared.execute(
                 policy: .exponentialBackoff(maxRetries: 3, baseDelay: 0.8)
@@ -102,10 +105,10 @@ class CloudProjectManager: ObservableObject {
                 var comps = URLComponents(string: "\(apiBaseURL)/api/projects.php")!
                 comps.queryItems = [
                     URLQueryItem(name: "action", value: "list"),
-                    URLQueryItem(name: "user_id", value: UserManager.shared.userId)
+                    URLQueryItem(name: "user_id", value: userId)
                 ]
                 var request = URLRequest(url: comps.url!)
-                self.applyAuthHeaders(to: &request)
+                HMACAuth.applyHeaders(to: &request)
                 request.timeoutInterval = 8
                 let (data, _) = try await URLSession.shared.data(for: request)
                 return data
