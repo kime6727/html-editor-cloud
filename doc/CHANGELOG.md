@@ -10,6 +10,20 @@
 > **App Store**：https://apps.apple.com/CN/app/id6764022927  
 > **后端**：https://html.niceapp.eu.cc （Dokploy 部署）
 
+## [3.2.2] - 2026-06-03
+
+### 文档 📚
+- **README.md 新增"前后端 API 衔接"章节**：列出 18 个 iOS 端到后端的实际调用，全量对齐、已逐项验证通过
+- **README.md 订阅章节细化**：明确「项目数量（客户端软上限 5）/ 发布次数（3 次/月）/ 链接过期（1 小时）」三段式免费限制
+- **README.md 删除 CLOUD_PUBLISH_ANALYSIS.md 引用**（v3.2.1 已删除）
+- **修正**：「Pro 特权」描述补齐「批量管理」能力
+
+### 验证 ✅
+- **配置一致性**：`free_user_monthly_publish_limit = 3` 在 iOS / PHP / MySQL 三端一致
+- **过期时间**：`free_user_expire_minutes = 60` 在 `publish.php` 强制兜底
+- **错误码**：`pro_required` / `publish_limit_exceeded` / `project_too_large` / `rate_limited` 等关键错误码 iOS 端通过 `ServerErrorCode.swift` 全部本地化
+- **响应模型**：iOS `CloudProjectInfo` / `VisitLog` / `DetailedStats` 与 PHP `handleListProjects` / `handleGetVisitLogs` / `handleGetStats` 字段名/类型全量对齐
+
 ## [3.2.1] - 2026-06-03
 
 ### 文档 📚

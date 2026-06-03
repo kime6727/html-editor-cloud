@@ -82,9 +82,9 @@
 ## 三、订阅与发布逻辑
 
 ### 3.1 免费用户
-- **项目数量**：未做硬性限制（不强制）
-- **发布次数**：每月 **3 次**（由 `system_config.free_user_monthly_publish_limit` 控制，可调整）
-- **发布有效期**：服务端默认强制 **1 小时（60 分钟）** 过期（`publish.php` 中 `expire_minutes=60` 兜底）
+- **项目数量**：客户端软上限 **5 个**（`SubscriptionManager.canCreateProject` 检查；服务端不强制）
+- **发布次数**：每月 **3 次**（由 `system_config.free_user_monthly_publish_limit` 控制，iOS / PHP 各自读这个值，可调整）
+- **发布有效期**：服务端默认强制 **1 小时（60 分钟）** 过期（`publish.php` 中 `if (!$is_pro && $expire_days === 0 && $expire_minutes === 0) { $expire_minutes = 60; }` 兜底）
 - **到期后行为**：仅默认 App 引导页（无法自定义 URL / 消息）
 - **可设密码**：❌ Pro 专属
 
@@ -314,6 +314,7 @@ zaixianhtml/
 
 | 版本 | 日期 | 摘要 |
 |---|---|---|
+| v3.2.2 | 2026-06-03 | 文档补完：README 新增"前后端 API 衔接"全量映射表，订阅章节细化免费三段限制 |
 | v3.2.1 | 2026-06-03 | 文档同步：移除已实现的"5 项目 / 1 次 / 5 分钟"等过时描述，统一为"3 次 / 月 + 1 小时"；删除 CLOUD_PUBLISH_ANALYSIS.md |
 | v3.2.0 | 2026-06-02 | 数据库 / API / iOS 死代码清理（详见 CHANGELOG） |
 | v3.0.0 | 2026-05-20 | HMAC 鉴权 / MySQL 持久化 / IP 匿名化 / bcrypt 密码 |

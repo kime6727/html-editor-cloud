@@ -114,8 +114,11 @@
 
 ### 💎 订阅系统
 - **Pro订阅** - 支持应用内购买（一次性买断 Lifetime）
-- **免费限制** - 免费用户每月可发布 **3 次**（由 `system_config.free_user_monthly_publish_limit` 控制）
-- **Pro特权** - 无发布次数限制、可设置访问密码、可设置到期自定义跳转
+- **免费限制**
+  - 项目数量：免费用户软上限 **5 个**（仅客户端 `SubscriptionManager.canCreateProject` 检查）
+  - 发布次数：免费用户每月可发布 **3 次**（DB / PHP / iOS 三端统一为 `free_user_monthly_publish_limit = 3`）
+  - 链接过期：免费用户发布后 **1 小时**（60 分钟）强制过期（`publish.php` 兜底）
+- **Pro特权** - 无限项目 / 无限发布 / 可设访问密码 / 可设 7-90 天/永不过期 / 自定义到期跳转 / 批量管理
 
 ### 🌍 多语言支持
 - **中文** - 完整的中文本地化
@@ -271,7 +274,6 @@ HTMLPreview/
 │   ├── SHARING_GUIDE.md                # 分享指南
 │   ├── PROJECT_SUMMARY.md              # 项目总结
 │   ├── requirements.md                 # 完整需求
-│   ├── CLOUD_PUBLISH_ANALYSIS.md       # 云端发布深度分析
 │   ├── DEPLOYMENT.md                   # 部署指南 🆕
 │   └── API.md                          # 后端 API 参考 🆕
 │
@@ -280,6 +282,40 @@ HTMLPreview/
 ```
 
 ## 未来规划
+
+### 前后端 API 衔接（v3.2.1 验证通过 ✅）
+
+下表是 iOS 端实际调用的后端端点，全量对齐，已逐项验证：
+
+| # | iOS 入口 | HTTP 端点 | 鉴权 | 服务端实现 | 状态 |
+|---|---------|-----------|------|-----------|------|
+| 1 | `CloudService.publishProjectWithDetails` | `POST /publish.php` | HMAC + 30 req/min | `deploy_package/publish.php` | ✅ |
+| 2 | `CloudService.deleteProject` | `POST /delete.php` | HMAC | `deploy_package/delete.php` | ✅ |
+| 3 | `CloudService.updateProjectExpiry` | `POST /api/projects.php?action=set_expiry` | HMAC | `deploy_package/api/projects.php` | ✅ |
+| 4 | `CloudService.fetchDetailedStats` | `GET /api/projects.php?action=stats` | HMAC | 同上 | ✅ |
+| 5 | `CloudProjectManager.loadPublishedProjects` | `GET /api/projects.php?action=list` | HMAC | 同上 | ✅ |
+| 6 | `CloudProjectManager.toggleProjectStatus` | `POST /api/projects.php?action=toggle_status` | HMAC | 同上 | ✅ |
+| 7 | `CloudProjectManager.unpublishProject` | `POST /api/projects.php?action=unpublish` | HMAC | 同上 | ✅ |
+| 8 | `CloudProjectManager.setAccessPassword` | `POST /api/projects.php?action=set_password` | HMAC | 同上 | ✅ |
+| 9 | `CloudProjectManager.removeAccessPassword` | `POST /api/projects.php?action=remove_password` | HMAC | 同上 | ✅ |
+| 10 | `CloudProjectManager.setExpiryDate` | `POST /api/projects.php?action=set_expiry` | HMAC | 同上 | ✅ |
+| 11 | `CloudProjectManager.updateProjectContent` | `POST /api/projects.php?action=update_content` | HMAC | 同上 | ✅ |
+| 12 | `CloudProjectManager.setExpiredRedirect` | `POST /api/projects.php?action=set_redirect_url` | HMAC | 同上 | ✅ |
+| 13 | `CloudProjectManager.getVisitLogs` | `GET /api/projects.php?action=get_visit_logs` | HMAC | 同上 | ✅ |
+| 14 | `CloudProjectManager.batchOperation` | `POST /api/projects.php?action=batch_operation` | HMAC | 同上 | ✅ |
+| 15 | `PublishedProjectsManager.fetchStats` | `GET /stats.php?id={id}` | HMAC | `deploy_package/stats.php` | ✅ |
+| 16 | `SubscriptionManager.syncUserProStatus` | `POST /sync_user.php` | HMAC | `deploy_package/sync_user.php` | ✅ |
+| 17 | `GitHubPublishService.publish` | `PUT https://api.github.com/repos/{owner}/{repo}/contents/...` | Keychain PAT | GitHub 官方 API | ✅ |
+| 18 | `ServerTestView` 自检 | `GET /ping.php` | 无 | `deploy_package/ping.php` | ✅ |
+
+**配置一致性**：
+- `free_user_monthly_publish_limit` = 3（iOS `AppConfig.freePublishLimit` / `publish.php getConfig()` / `system_config`）
+- `free_user_expire_minutes` = 60（`publish.php` 强制兜底）
+- `pro_required` / `publish_limit_exceeded` / `project_too_large` / `rate_limited` / `invalid_signature` / `permission_denied` 等错误码，iOS 端通过 `ServerErrorCode.swift` 翻译为本地化提示
+
+**已知冗余**（不影响功能）：
+- `POST /delete.php` 与 `POST /api/projects.php?action=unpublish` 实现相同的软删除。iOS 在不同场景使用不同入口（`DocumentManager` 用前者，发布中心用后者），已观察无冲突。
+- `api/projects.php?action=get` 已实现但 iOS 端未使用（iOS 通过 `list` 后本地过滤），保留备用。
 
 ### 已完成 ✅
 - [x] 本地网络分享与二维码生成
