@@ -205,11 +205,15 @@ class DocumentManager: ObservableObject {
     
     private func initialize() async {
         do {
+            // 捕获需要用到的 URL，避免在 detached task 中访问 @MainActor 隔离的 self
+            let projectsDir = self.projectsDirectory
+            let metaFile = self.metadataFile
+            
             let initialState = try await Task.detached(priority: .userInitiated) {
-                try FileManager.default.createDirectory(at: self.projectsDirectory, withIntermediateDirectories: true)
+                try FileManager.default.createDirectory(at: projectsDir, withIntermediateDirectories: true)
                 
                 let loadedMetadata: ProjectMetadata
-                if let data = try? Data(contentsOf: self.metadataFile),
+                if let data = try? Data(contentsOf: metaFile),
                    let decoded = try? JSONDecoder().decode(ProjectMetadata.self, from: data) {
                     loadedMetadata = decoded
                 } else {
@@ -255,7 +259,7 @@ class DocumentManager: ObservableObject {
             }
             
             // Lazy load actual project data in background
-            Task.detached(priority: .utility) { [weak self] in
+            Task { [weak self] in
                 await self?.lazyLoadProjectData(loadedMetadata)
             }
             

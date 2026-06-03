@@ -73,9 +73,9 @@ class SubscriptionManager: ObservableObject {
     }
     
     private func setupStoreKit() async {
-        updates = Task.detached {
+        updates = Task { [weak self] in
             for await result in StoreKit.Transaction.updates {
-                await self.handleTransaction(result)
+                await self?.handleTransaction(result)
             }
         }
         
@@ -153,7 +153,7 @@ class SubscriptionManager: ObservableObject {
             isPro = true
             await transaction.finish()
             await syncUserProStatus()
-        case .unverified(let transaction, let error):
+        case .unverified(let transaction, _):
             if transaction.productID == productID {
                 isPro = false
                 Task { await syncUserProStatus() }

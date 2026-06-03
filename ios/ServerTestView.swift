@@ -202,17 +202,16 @@ struct ServerTestView: View {
         
         totalCount = testDefinitions.count
         
-        await withTaskGroup(of: Void.self) { group in
-            for (index, testDef) in testDefinitions.enumerated() {
-                group.addTask { @MainActor in
-                    testResults.append(TestResult(name: testDef.0, status: .running, detail: "Testing...", duration: nil))
-                    let startTime = Date()
-                    await testDef.1(index)
-                    let duration = Date().timeIntervalSince(startTime)
-                    await updateTestDuration(index: index, duration: duration)
-                    await incrementProgress()
-                }
-            }
+        // 顺序执行所有测试 —— 避免在 addTask 中传递 @MainActor 闭包引发的 Swift 6 并发警告
+        for (index, testDef) in testDefinitions.enumerated() {
+            let testName = testDef.0
+            let testClosure = testDef.1
+            testResults.append(TestResult(name: testName, status: .running, detail: "Testing...", duration: nil))
+            let startTime = Date()
+            await testClosure(index)
+            let duration = Date().timeIntervalSince(startTime)
+            await updateTestDuration(index: index, duration: duration)
+            await incrementProgress()
         }
         
         isRunning = false
