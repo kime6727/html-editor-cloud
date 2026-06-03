@@ -1,4 +1,53 @@
-# HTML Editor Pro - 项目总结
+# Code Editor – HTML & Preview - 项目总结
+
+## 📋 产品元信息
+
+| 项目 | 值 |
+|------|---|
+| **App 名称** | Code Editor – HTML & Preview |
+| **Bundle ID** | `com.niceapp.htmleditor` |
+| **Apple ID** | `6764022927` |
+| **App Store（中国区）** | https://apps.apple.com/CN/app/id6764022927 |
+| **App 官网** | https://page.niceapp.eu.cc/apps/code_editor |
+| **后端仓库** | https://github.com/kime6727/html-editor-cloud |
+| **后端部署** | Dokploy |
+| **后端域名** | https://html.niceapp.eu.cc |
+| **订阅 Product ID** | `CodeEditor_999`（Lifetime） |
+| **支持邮箱** | fengezhao@hotmail.com |
+
+---
+
+## 平台与基础设施
+
+| 项目 | 值 |
+|------|---|
+| **iOS 最低版本** | iOS 17.0 |
+| **客户端语言** | Swift（SwiftUI + UIKit） |
+| **客户端架构** | MVVM + Combine + ObservableObject |
+| **本地存储** | iOS FileManager + UserDefaults + Keychain |
+| **本地网络共享** | Network.framework `NWListener`（HTTPS 弱/自签证书，端口动态） |
+| **Web 渲染** | WKWebView |
+| **后端语言** | PHP 7.4+（兼容 MySQL 5.7 / 8.0） |
+| **后端数据库** | MySQL（utf8mb4，pconnect 长连接） |
+| **后端架构** | 单体 API + 静态资源直出（Nginx + PHP-FPM） |
+| **云端发布流程** | iOS Multipart Upload → PHP `publish.php` → 写 `pub/{project_id}/index.html` |
+| **HMAC 鉴权** | SHA-256 over `apiKey + timestamp`，5 分钟时间窗 |
+| **GitHub 发布** | 客户端直连 GitHub Contents API（无需后端代理） |
+
+---
+
+## 📜 协议与支持链接
+
+| 项目 | 链接 |
+|------|------|
+| **用户服务协议** | https://page.niceapp.eu.cc/index.php/archives/User-Service-Agreement.html |
+| **隐私政策** | https://page.niceapp.eu.cc/index.php/archives/Privacy-Policy.html |
+| **在线客服** | https://page.niceapp.eu.cc/index.php/archives/13.html |
+| **支持邮箱** | fengezhao@hotmail.com |
+
+> ⚠️ **安全提醒**：Personal Access Token（GitHub）等任何云端凭证**不要**写入仓库、文档、Info.plist。使用 Keychain 或后端代理签发短期 token。如已泄露请立即到 https://github.com/settings/tokens 撤销。
+
+---
 
 ## 📦 项目结构
 
@@ -340,9 +389,6 @@ class CloudService: ObservableObject {
 ### 进行中 🚧
 - [ ] iCloud同步
 - [ ] 协作功能
-- [ ] 版本历史
-- [ ] 评论功能
-- [ ] 团队空间
 
 ### 计划中 📋
 - [ ] 更多语言支持（日语、韩语、法语等）
@@ -371,4 +417,4 @@ class CloudService: ObservableObject {
 
 ---
 
-**感谢使用 HTML Editor Pro！** 🎉
+**感谢使用 Code Editor – HTML & Preview！** 🎉

@@ -466,20 +466,14 @@ struct DetailedStats: Codable {
     let uniqueVisitors: Int?
     let visitsByDay: [DailyVisit]
     let topReferrers: [TopReferrer]?
-    let topCountries: [TopCountry]?
-    
+
     struct DailyVisit: Codable {
         let date: String
         let count: Int
     }
-    
+
     struct TopReferrer: Codable {
         let source: String
-        let count: Int
-    }
-    
-    struct TopCountry: Codable {
-        let country: String
         let count: Int
     }
 }

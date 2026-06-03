@@ -193,7 +193,7 @@ struct ServerTestView: View {
             ("5. Projects API Test", { index in await runProjectsTest(index: index) }),
             ("6. Delete API Test", { index in await runDeleteTest(index: index) }),
             ("7. Update Expiry API Test", { index in await runUpdateExpiryTest(index: index) }),
-            ("8. Verify Password API Test", { index in await runVerifyPasswordTest(index: index) }),
+            ("8. Set Password API Test", { index in await runSetPasswordTest(index: index) }),
             ("9. Stats API Test", { index in await runStatsTest(index: index) }),
             ("10. Database Connection Test", { index in await runDatabaseTest(index: index) }),
             ("11. CORS Headers Test", { index in await runCORSTest(index: index) }),
@@ -601,38 +601,41 @@ struct ServerTestView: View {
     }
     
     @MainActor
-    private func runVerifyPasswordTest(index: Int) async {
-        let url = AppConfig.apiBaseURL + "/verify_password.php"
-        
+    private func runSetPasswordTest(index: Int) async {
+        // 测试 set_password action（旧 verify_password.php 已废弃，密码验证由 index.php 网关处理）
+        let url = AppConfig.apiBaseURL + "/api/projects.php"
+
         log("POST \(url)")
-        
+
         var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        HMACAuth.applyHeaders(to: &request)
         request.timeoutInterval = 8
-        
+
         let body: [String: Any] = [
+            "action": "set_password",
             "project_id": "test_password_id",
+            "user_id": UserManager.shared.userId,
             "password": "test"
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        
+
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-            
+
             if let httpResponse = response as? HTTPURLResponse {
                 let respStr = String(data: data, encoding: .utf8) ?? ""
                 log("Status: \(httpResponse.statusCode)")
                 log("Response: \(respStr)")
-                
-                if httpResponse.statusCode == 200 {
-                    updateTestStatus(index: index, status: .success, detail: "Verify Password API reachable")
-                } else if httpResponse.statusCode == 404 {
-                    let respStr = String(data: data, encoding: .utf8) ?? ""
-                    if respStr.contains("not found") || respStr.contains("不存在") {
-                        updateTestStatus(index: index, status: .success, detail: "Verify Password API reachable (test ID not found, expected)")
+
+                if httpResponse.statusCode == 200,
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    let msg = (json["message"] as? String ?? "").lowercased()
+                    if msg.contains("not found") || msg.contains("does not exist") || msg.contains("未找到") {
+                        updateTestStatus(index: index, status: .success, detail: "Set Password API reachable (test ID not found, expected)")
                     } else {
-                        updateTestStatus(index: index, status: .error, detail: "HTTP 404: \(respStr)")
+                        updateTestStatus(index: index, status: .success, detail: "Set Password API reachable")
                     }
                 } else {
                     updateTestStatus(index: index, status: .error, detail: "HTTP \(httpResponse.statusCode): \(respStr)")
@@ -643,7 +646,7 @@ struct ServerTestView: View {
             updateTestStatus(index: index, status: .error, detail: error.localizedDescription)
         }
     }
-    
+
     @MainActor
     private func runStatsTest(index: Int) async {
         let url = AppConfig.apiBaseURL + "/stats.php?id=test_stats_id"

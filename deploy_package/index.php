@@ -327,29 +327,21 @@ function showPasswordPrompt($projectId, $errorMessage = null, $locked = false) {
 function recordVisit($db, $projectId) {
     try {
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-        $deviceType = 'desktop';
-        
-        if (preg_match('/Mobile|Android|iPhone|iPad|iPod/i', $userAgent)) {
-            if (preg_match('/iPad|Tablet/i', $userAgent)) {
-                $deviceType = 'tablet';
-            } else {
-                $deviceType = 'mobile';
-            }
-        }
-        
+
         $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         $ip = filter_var($ip, FILTER_VALIDATE_IP) ?: 'unknown';
-        
+
         $referer = $_SERVER['HTTP_REFERER'] ?? null;
-        
+
         $ipData = anonymizeIP($ip);
-        
+
+        // visit_logs 已移除 device_type 字段（v3.2 cleanup）
         $db->execute(
-            "INSERT INTO visit_logs (project_id, ip_address, ip_hash, user_agent, referer, device_type, visited_at) 
-             VALUES (?, ?, ?, ?, ?, ?, NOW())",
-            [$projectId, $ipData['anonymized'], $ipData['hash'], $userAgent, $referer, $deviceType]
+            "INSERT INTO visit_logs (project_id, ip_address, ip_hash, user_agent, referer, visited_at)
+             VALUES (?, ?, ?, ?, ?, NOW())",
+            [$projectId, $ipData['anonymized'], $ipData['hash'], $userAgent, $referer]
         );
-        
+
     } catch (Exception $e) {
         error_log("[IndexGateway] Failed to record visit: " . $e->getMessage());
     }

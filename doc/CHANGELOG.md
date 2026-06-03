@@ -5,6 +5,42 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+> **产品**：Code Editor – HTML & Preview  
+> **Bundle ID**：`com.niceapp.htmleditor` · **Apple ID**：`6764022927`  
+> **App Store**：https://apps.apple.com/CN/app/id6764022927  
+> **后端**：https://html.niceapp.eu.cc （Dokploy 部署）
+
+## [3.2.0] - 2026-06-02
+
+### 清理 🧹
+
+#### 数据库清理
+- **移除表**：`daily_stats`、`subscription_records`、`temp_access_links`、`project_ip_rules`、`project_comments`、`tags`、`categories`、`project_tags`
+- **移除视图**：`v_user_stats`、`v_project_stats`、`v_project_full`、`v_daily_summary`、`v_referrer_stats`
+- **移除存储过程**：`sp_aggregate_daily_stats`、`sp_cleanup_visit_logs`
+- **移除事件**：`evt_aggregate_stats`
+- **移除字段**：`visit_logs.country / city / device_type / browser / os`、`projects.thumbnail / thumbnail_url / temp_link_*`
+- **统一配置**：`free_user_monthly_publish_limit` 统一为 `3`（之前 DB=1, PHP=3, iOS=3）
+
+#### API 清理
+- **移除端点**：`action=create_temp_link`（已 410 → 已删除）
+- **移除字段**：`stats.topCountries`（从未实现，UI 永远空数组）
+- **修复**：`handleGetVisitLogs` 移除 `device_type` 字段依赖，从 User-Agent 推断
+- **修复**：`recordVisit()` 移除 `device_type` 字段依赖
+- **新增**：`getConfig()` 工具函数，从 `system_config` 读配置
+
+#### iOS 清理
+- **移除模型**：`VisitStatistics`、`CountryStat`、`TopCountry`（死代码，从未被调用）
+- **移除函数**：`getVisitStatistics()`（死代码）
+- **移除状态**：`showStatsDetail`（死状态，按钮点击无任何响应）
+- **移除 UI**：「查看详情」按钮（点击无任何响应）
+- **移除本地化**：`view_details`、`temp_link_*` 共 22 条（中英双语）
+- **替换测试**：「Verify Password API Test」→「Set Password API Test」（测试新端点而非已废弃端点）
+- **新增**：`AppConfig.officialWebsiteURL` 官方 app 官网
+
+#### 文档清理
+- **移除描述**：临时访问链接、文件历史版本、协作编辑、CDN 加速、自定义域名、评论/留言、付费下载、IM 缩略图、IP 黑/白名单、项目搜索/标签、国家统计
+
 ## [未发布]
 
 ### 新增 🎉
@@ -161,9 +197,6 @@
 - [x] 订阅系统
 - [ ] iCloud同步
 - [ ] 协作功能
-- [ ] 版本历史
-- [ ] 评论功能
-- [ ] 团队空间
 
 ---
 
@@ -184,4 +217,4 @@
 
 ---
 
-**感谢使用 HTML Editor Pro！** 🎉
+**感谢使用 Code Editor – HTML & Preview！** 🎉

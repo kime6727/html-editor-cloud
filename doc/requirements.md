@@ -1,8 +1,61 @@
-# HTML Code Editor - 完整需求文档
+# Code Editor – HTML & Preview - 完整需求文档
 
 ## 一、产品概述
 
-HTML Code Editor 是一款iOS端的HTML代码编辑工具，支持多文件项目管理、实时预览和云端发布功能。
+**Code Editor – HTML & Preview** 是一款专业的 iOS HTML 编辑与云端发布 App，让开发者、设计师和创作者能够在移动设备上快速编写、预览和发布 HTML 项目。
+
+### 1.1 产品元信息
+
+| 项目 | 值 |
+|------|---|
+| **App 名称（App Store）** | Code Editor – HTML & Preview |
+| **Bundle Identifier** | `com.niceapp.htmleditor` |
+| **Apple ID** | `6764022927` |
+| **App Store 下载（中国区）** | https://apps.apple.com/CN/app/id6764022927 |
+| **App 官网** | https://page.niceapp.eu.cc/apps/code_editor |
+| **最低 iOS 版本** | iOS 17.0 |
+| **开发语言** | Swift（SwiftUI + UIKit） |
+| **Web 渲染引擎** | WKWebView |
+| **支持的平台** | iPhone / iPad |
+| **本地化** | 中文（简体 / 繁体）、英文 |
+
+### 1.2 后端与基础设施
+
+| 项目 | 值 |
+|------|---|
+| **后端代码仓库** | https://github.com/kime6727/html-editor-cloud |
+| **后端部署方式** | Dokploy |
+| **后端生产域名** | https://html.niceapp.eu.cc |
+| **后端技术栈** | PHP 7.4+ / MySQL 5.7+（含 MySQL 8.0 兼容） |
+| **静态资源托管** | 部署包 `pub/{project_id}/index.html` 目录直出 |
+
+### 1.3 订阅 / Paywall
+
+| 项目 | 值 |
+|------|---|
+| **订阅模式** | 一次性买断（Lifetime，非周期订阅） |
+| **App Store Product ID** | `CodeEditor_999` |
+| **解锁权益** | 解除每月发布次数限制、解除访问密码设置限制、解除到期时间上限 |
+
+### 1.4 协议与支持
+
+| 项目 | 链接 |
+|------|------|
+| **用户服务协议** | https://page.niceapp.eu.cc/index.php/archives/User-Service-Agreement.html |
+| **隐私政策** | https://page.niceapp.eu.cc/index.php/archives/Privacy-Policy.html |
+| **在线客服** | https://page.niceapp.eu.cc/index.php/archives/13.html |
+| **支持邮箱** | fengezhao@hotmail.com |
+
+### 1.5 GitHub Pages 集成（可选发布渠道）
+
+| 项目 | 值 |
+|------|---|
+| **GitHub 账号** | `@kime6727` |
+| **授权 Scope** | `repo`（含 public_repo 即可发布到 public repo） |
+| **发布方式** | 客户端直接调用 GitHub Contents API（`PUT /repos/{owner}/{repo}/contents/...`），无需后端代理 |
+| **凭证保护** | 🔒 Personal Access Token **必须**存放在 iOS Keychain；不允许写入 Info.plist、`.env`、代码或本文档 |
+
+> ⚠️ **安全策略**：任何 Personal Access Token 都不应出现在仓库 / 文档 / 构建产物中。如不慎泄露，立即到 https://github.com/settings/tokens 撤销。
 
 ---
 

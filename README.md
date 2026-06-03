@@ -1,6 +1,50 @@
-# HTML Editor Pro - 移动端HTML编辑器与云端发布平台
+# Code Editor – HTML & Preview - 移动端HTML编辑器与云端发布平台
 
 一款专业的iOS HTML编辑与云端发布工具，让开发者、设计师和创作者能够在移动设备上快速编写、预览和发布HTML项目。
+
+## 📋 产品元信息
+
+| 项目 | 值 |
+|------|---|
+| **App 名称** | Code Editor – HTML & Preview |
+| **Bundle ID** | `com.niceapp.htmleditor` |
+| **Apple ID** | `6764022927` |
+| **App Store（中国区）** | https://apps.apple.com/CN/app/id6764022927 |
+| **App 官网** | https://page.niceapp.eu.cc/apps/code_editor |
+| **后端仓库** | https://github.com/kime6727/html-editor-cloud |
+| **后端部署方式** | Dokploy |
+| **后端绑定域名** | https://html.niceapp.eu.cc |
+| **最低 iOS 版本** | iOS 17.0 |
+| **开发语言** | Swift（SwiftUI + UIKit） |
+| **Web 引擎** | WKWebView |
+| **后端语言** | PHP + MySQL |
+| **本地化** | 中文、英文 |
+
+### 订阅 / Paywall 配置
+
+| 项目 | 值 |
+|------|---|
+| **订阅商品类型** | 一次性买断（Lifetime） |
+| **Product ID** | `CodeEditor_999` |
+
+### 协议与支持
+
+| 项目 | 链接 |
+|------|------|
+| **用户服务协议** | https://page.niceapp.eu.cc/index.php/archives/User-Service-Agreement.html |
+| **隐私政策** | https://page.niceapp.eu.cc/index.php/archives/Privacy-Policy.html |
+| **在线客服** | https://page.niceapp.eu.cc/index.php/archives/13.html |
+| **联系邮箱** | fengezhao@hotmail.com |
+
+### GitHub 集成
+
+| 项目 | 值 |
+|------|---|
+| **GitHub 用户名** | `@kime6727` |
+| **SSH Key 名称** | `aicode_2` |
+| **GitHub PAT** | 🔒 **请勿提交到仓库 / 文档中**——从 Keychain、`xcodebuild` 注入或后端服务下发 |
+
+> ⚠️ **安全提示**：Personal Access Token (PAT) 属于敏感凭证，仅在本地构建机或 CI Secret 中保存，**不要**写入 Info.plist、.env、代码或本文档。若已泄露，请立即到 https://github.com/settings/tokens 撤销并重新生成。
 
 ## 核心功能
 
@@ -268,13 +312,20 @@ HTMLPreview/
 ### 报告问题
 如果你发现了bug或有功能建议，请通过以下方式反馈：
 - 📧 Email: fengezhao@hotmail.com
+- 💬 在线客服: https://page.niceapp.eu.cc/index.php/archives/13.html
 - 🐛 在设置中找到"反馈"选项
-- ⭐ 在App Store评论中告诉我们
+- ⭐ 在App Store评论中告诉我们：https://apps.apple.com/CN/app/id6764022927
 
 ### 技术支持
 - 📖 查看使用指南和常见问题
 - 💬 发送邮件获取技术支持
-- 🌐 访问官方网站获取最新资讯
+- 🌐 访问官方网站获取最新资讯：https://page.niceapp.eu.cc/apps/code_editor
+
+### 相关链接
+- 🍎 App Store: https://apps.apple.com/CN/app/id6764022927
+- 📜 用户协议: https://page.niceapp.eu.cc/index.php/archives/User-Service-Agreement.html
+- 🔒 隐私政策: https://page.niceapp.eu.cc/index.php/archives/Privacy-Policy.html
+- 🐙 后端仓库: https://github.com/kime6727/html-editor-cloud
 
 ## 许可证
 
@@ -282,4 +333,4 @@ MIT License - 欢迎使用和分享！
 
 ---
 
-**感谢使用 HTML Editor Pro！** 🎉
+**感谢使用 Code Editor – HTML & Preview！** 🎉

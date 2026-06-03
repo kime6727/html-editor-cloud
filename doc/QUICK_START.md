@@ -1,6 +1,6 @@
 # 快速开始指南
 
-## 🚀 5分钟上手 HTML Editor Pro
+## 🚀 5分钟上手 Code Editor – HTML & Preview
 
 ### 第一步：打开项目
 

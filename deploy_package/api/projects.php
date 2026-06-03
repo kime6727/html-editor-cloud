@@ -108,9 +108,6 @@ switch ($action) {
     case 'batch_operation':
         handleBatchOperation();
         break;
-    case 'create_temp_link':
-        handleCreateTempLink();
-        break;
     default:
         http_response_code(400);
         echo json_encode(['success' => false, 'code' => 'invalid_request', 'message' => 'Invalid action']);
@@ -588,8 +585,7 @@ function handleGetStats() {
             'uniqueVisitors' => $uniqueVisitors,
             'todayVisits' => $todayVisits,
             'visitsByDay' => $visits,
-            'topReferrers' => $referrers,
-            'topCountries' => []
+            'topReferrers' => $referrers
         ]);
     } catch (Exception $e) {
         http_response_code(500);
@@ -737,42 +733,48 @@ function handleGetVisitLogs() {
         // 获取分页数据
         $offset = ($page - 1) * $limit;
         $logs = db()->query(
-            "SELECT 
+            "SELECT
                 id,
                 ip_address,
                 user_agent,
                 referer,
-                device_type,
                 visited_at
-             FROM visit_logs 
+             FROM visit_logs
              $where
-             ORDER BY visited_at DESC 
+             ORDER BY visited_at DESC
              LIMIT ? OFFSET ?",
             array_merge($params, [$limit, $offset])
         );
-        
+
         // 处理日志数据
         $processedLogs = [];
         foreach ($logs as $log) {
-            // 解析User Agent获取更多信息
+            // 从 User-Agent 推断设备类型（schema 已移除 device_type 字段）
+            $ua = $log['user_agent'] ?? '';
+            $device = 'unknown';
             $deviceIcon = 'desktop';
-            if (stripos($log['user_agent'], 'mobile') !== false || stripos($log['user_agent'], 'iphone') !== false) {
-                $deviceIcon = 'mobile';
-            } elseif (stripos($log['user_agent'], 'ipad') !== false || stripos($log['user_agent'], 'tablet') !== false) {
+            if (stripos($ua, 'ipad') !== false || stripos($ua, 'tablet') !== false) {
+                $device = 'tablet';
                 $deviceIcon = 'tablet';
+            } elseif (stripos($ua, 'mobile') !== false || stripos($ua, 'iphone') !== false || stripos($ua, 'android') !== false) {
+                $device = 'mobile';
+                $deviceIcon = 'mobile';
+            } elseif (stripos($ua, 'mozilla') !== false || stripos($ua, 'chrome') !== false || stripos($ua, 'safari') !== false) {
+                $device = 'desktop';
+                $deviceIcon = 'desktop';
             }
-            
+
             // 解析来源
             $source = '直接访问';
             if (!empty($log['referer'])) {
                 $parsedUrl = parse_url($log['referer']);
                 $source = $parsedUrl['host'] ?? '未知来源';
             }
-            
+
             $processedLogs[] = [
                 'id' => $log['id'],
                 'ip' => maskIP($log['ip_address']),
-                'device' => $log['device_type'] ?? 'unknown',
+                'device' => $device,
                 'deviceIcon' => $deviceIcon,
                 'referer' => $log['referer'] ?? '',
                 'source' => $source,
@@ -881,14 +883,6 @@ function handleBatchOperation() {
         http_response_code(500);
         echo json_encode(['success' => false, 'code' => 'operation_failed', 'message' => $e->getMessage()]);
     }
-}
-
-/**
- * 创建临时访问链接
- */
-function handleCreateTempLink() {
-    http_response_code(410);
-    echo json_encode(['success' => false, 'code' => 'endpoint_removed', 'message' => 'Temporary access links have been removed']);
 }
 
 // ========== 辅助函数 ==========

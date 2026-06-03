@@ -25,6 +25,25 @@ $env = loadEnv(__DIR__ . '/.env');
 // 引入数据库类
 require_once __DIR__ . '/database/Database.php';
 
+/**
+ * 从 system_config 读取配置项（缺省值兜底）
+ * 用于把硬编码的配置项抽到数据库，便于运营调整
+ */
+function getConfig($key, $default = null) {
+    try {
+        $row = db()->queryOne(
+            "SELECT config_value FROM system_config WHERE config_key = ?",
+            [$key]
+        );
+        if ($row && isset($row['config_value']) && $row['config_value'] !== '') {
+            return $row['config_value'];
+        }
+    } catch (Exception $e) {
+        error_log("getConfig($key) failed: " . $e->getMessage());
+    }
+    return $default;
+}
+
 // 动态检测基础 URL
 $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
@@ -268,8 +287,8 @@ if (!$is_pro && $user_id) {
             [$user_id]
         );
         
-        // 免费用户每月最多发布3次（含首次发布）
-        $freeMonthlyLimit = 3;
+        // 免费用户每月最多发布次数（从 system_config 读取，缺省 3）
+        $freeMonthlyLimit = (int)getConfig('free_user_monthly_publish_limit', 3);
         if (!$is_update && $monthlyCount['count'] >= $freeMonthlyLimit) {
             http_response_code(403);
             echo json_encode([

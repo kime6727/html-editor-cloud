@@ -21,30 +21,6 @@ struct CloudPublishedProject: Identifiable, Codable, Equatable {
     }
 }
 
-struct VisitStatistics: Codable {
-    let totalVisits: Int
-    let uniqueVisitors: Int
-    let todayVisits: Int
-    let visitsByDay: [DayStat]
-    let topReferrers: [SourceStat]
-    let topCountries: [CountryStat]
-    
-    struct DayStat: Codable {
-        let date: String
-        let count: Int
-    }
-    
-    struct SourceStat: Codable {
-        let source: String
-        let count: Int
-    }
-    
-    struct CountryStat: Codable {
-        let country: String
-        let count: Int
-    }
-}
-
 struct VisitLog: Codable, Identifiable {
     let id: Int
     let ip: String
@@ -298,30 +274,6 @@ class CloudProjectManager: ObservableObject {
         } catch {}
         
         return false
-    }
-    
-    // MARK: - Get Visit Statistics
-    func getVisitStatistics(projectId: String) async -> VisitStatistics? {
-        guard var urlComponents = URLComponents(string: "\(apiBaseURL)/api/projects.php") else {
-            return nil
-        }
-        
-        urlComponents.queryItems = [
-            URLQueryItem(name: "action", value: "stats"),
-            URLQueryItem(name: "project_id", value: projectId)
-        ]
-        
-        guard let url = urlComponents.url else { return nil }
-        
-        var request = URLRequest(url: url)
-        applyAuthHeaders(to: &request)
-        
-        do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            return try? JSONDecoder().decode(VisitStatistics.self, from: data)
-        } catch {
-            return nil
-        }
     }
     
     // MARK: - Update Content

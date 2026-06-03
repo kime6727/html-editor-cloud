@@ -12,7 +12,6 @@ struct CloudProjectManagerView: View {
     @State private var selectedProject: CloudPublishedProject?
     @State private var showPasswordSheet = false
     @State private var showExpirySheet = false
-    @State private var showStatsDetail = false
     @State private var isUpdating = false
     @State private var showRedirectSettings = false
     @State private var showVisitLogs = false
@@ -331,7 +330,7 @@ struct CloudProjectManagerView: View {
                     .font(.headline)
                 
                 Spacer()
-                
+
                 HStack(spacing: 12) {
                     Button(action: { showVisitLogs = true }) {
                         HStack(spacing: 4) {
@@ -340,12 +339,6 @@ struct CloudProjectManagerView: View {
                         }
                         .font(.caption)
                         .foregroundColor(Color("Color"))
-                    }
-                    
-                    Button(action: { showStatsDetail = true }) {
-                        Text("view_details".localized)
-                            .font(.caption)
-                            .foregroundColor(Color("Color"))
                     }
                 }
             }

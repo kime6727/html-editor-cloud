@@ -23,39 +23,28 @@ $expectedSchema = [
         'total_visits', 'created_at', 'last_active_at', 'status', 'ban_reason', 'banned_at'
     ],
     'visit_logs' => [
-        'id', 'project_id', 'ip_address', 'user_agent', 'referer', 'country',
-        'city', 'device_type', 'visited_at'
+        'id', 'project_id', 'ip_address', 'ip_hash', 'user_agent', 'referer', 'visited_at'
     ],
     'user_activity_logs' => [
-        'id', 'user_id', 'project_id', 'action', 'details', 'created_at'
+        'id', 'user_id', 'project_id', 'action', 'details', 'ip_address', 'created_at'
     ],
     'admin_logs' => [
         'id', 'admin_user', 'action', 'target_type', 'target_id', 'details',
-        'ip_address', 'created_at'
-    ],
-    'daily_stats' => [
-        'id', 'stat_date', 'total_projects', 'total_visits', 'new_users',
-        'active_users', 'pro_users', 'publish_count', 'created_at', 'updated_at'
+        'ip_address', 'ip_hash', 'created_at'
     ],
     'system_config' => [
         'id', 'config_key', 'config_value', 'description', 'updated_at'
-    ],
-    'subscription_records' => [
-        'id', 'user_id', 'transaction_id', 'product_id', 'status',
-        'purchased_at', 'expires_at', 'refund_date'
     ],
 ];
 
 $expectedTables = array_keys($expectedSchema);
 
-$expectedViews = ['v_user_stats', 'v_project_stats'];
+// v3.2 cleanup: 已移除 v_user_stats / v_project_stats / v_project_full 等视图
+$expectedViews = [];
 
 $v3ConfigKeys = [
     'free_user_expire_minutes' => '60',
-    'enable_realtime_expiry_check' => '1',
-    'enable_password_protection' => '1',
-    'enable_visit_tracking' => '1',
-    'session_timeout_minutes' => '60',
+    'free_user_monthly_publish_limit' => '3',
 ];
 
 echo "<!DOCTYPE html>
@@ -279,7 +268,7 @@ echo "</table>";
 
 // 7. 数据统计
 echo "<h2>📈 7. 数据统计</h2>";
-$statsTables = ['users', 'projects', 'visit_logs', 'subscription_records'];
+$statsTables = ['users', 'projects', 'visit_logs', 'user_activity_logs', 'admin_logs'];
 echo "<table><tr><th>表名</th><th>记录数</th></tr>";
 foreach ($statsTables as $table) {
     if (in_array($table, $existingTables)) {
@@ -474,27 +463,8 @@ if (in_array('visit_logs', $existingTables)) {
         }
         echo "</table>";
     }
-    
-    // 检查设备类型分布
-    $stmt = $pdo->query("
-        SELECT device_type, COUNT(*) as count 
-        FROM visit_logs 
-        WHERE visited_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
-        GROUP BY device_type 
-        ORDER BY count DESC
-    ");
-    $deviceStats = $stmt->fetchAll();
-    
-    if (!empty($deviceStats)) {
-        echo "<h3>近7天设备类型分布</h3>";
-        echo "<table><tr><th>设备类型</th><th>访问量</th><th>占比</th></tr>";
-        $totalWeekVisits = array_sum(array_column($deviceStats, 'count'));
-        foreach ($deviceStats as $stat) {
-            $percentage = round(($stat['count'] / $totalWeekVisits) * 100, 1);
-            echo "<tr><td>{$stat['device_type']}</td><td>{$stat['count']}</td><td>{$percentage}%</td></tr>";
-        }
-        echo "</table>";
-    }
+
+    // v3.2 cleanup: visit_logs.device_type 已移除
 } else {
     echo "<p class='error'>❌ visit_logs 表不存在</p>";
 }

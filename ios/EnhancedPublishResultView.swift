@@ -9,7 +9,6 @@ struct EnhancedPublishResultView: View {
     
     @State private var showShareSheet = false
     @State private var showQRCode = false
-    @State private var showStatsDetail = false
     
     var currentUrl: String {
         result.url

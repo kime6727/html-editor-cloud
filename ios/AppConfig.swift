@@ -27,6 +27,8 @@ enum AppConfig {
     static let privacyPolicyURL = "https://page.niceapp.eu.cc/index.php/archives/Privacy-Policy.html"
     static let onlineServiceURL = "https://page.niceapp.eu.cc/index.php/archives/13.html"
     static let supportEmail = "fengezhao@hotmail.com"
+    /// App 官方介绍页（用于 Profile / Onboarding 中"了解更多"）
+    static let officialWebsiteURL = "https://page.niceapp.eu.cc/apps/code_editor"
 
     // MARK: - App Store
     static var appStoreReviewURL: URL? {
