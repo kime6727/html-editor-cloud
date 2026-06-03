@@ -113,9 +113,9 @@
   - 天气卡片
 
 ### 💎 订阅系统
-- **Pro订阅** - 支持应用内购买订阅
-- **免费限制** - 免费用户可创建5个项目、发布1次
-- **Pro特权** - 无限制项目创建和发布
+- **Pro订阅** - 支持应用内购买（一次性买断 Lifetime）
+- **免费限制** - 免费用户每月可发布 **3 次**（由 `system_config.free_user_monthly_publish_limit` 控制）
+- **Pro特权** - 无发布次数限制、可设置访问密码、可设置到期自定义跳转
 
 ### 🌍 多语言支持
 - **中文** - 完整的中文本地化
@@ -264,15 +264,19 @@ HTMLPreview/
 │       ├── AppIcon.appiconset/
 │       └── Contents.json
 │
-├── 📚 文档
-│   ├── README.md                      # 项目说明
-│   ├── CHANGELOG.md                   # 更新日志
-│   ├── QUICK_START.md                 # 快速开始
-│   ├── SHARING_GUIDE.md               # 分享指南
-│   └── PROJECT_SUMMARY.md             # 项目总结
+├── 📚 文档（/doc）
+│   ├── README.md                       # 项目说明（本文件）
+│   ├── CHANGELOG.md                    # 更新日志
+│   ├── QUICK_START.md                  # 快速开始
+│   ├── SHARING_GUIDE.md                # 分享指南
+│   ├── PROJECT_SUMMARY.md              # 项目总结
+│   ├── requirements.md                 # 完整需求
+│   ├── CLOUD_PUBLISH_ANALYSIS.md       # 云端发布深度分析
+│   ├── DEPLOYMENT.md                   # 部署指南 🆕
+│   └── API.md                          # 后端 API 参考 🆕
 │
 └── 🏗️ 项目配置
-    └── HTMLPreview.xcodeproj/         # Xcode项目
+    └── HTMLPreview.xcodeproj/          # Xcode 工程
 ```
 
 ## 未来规划

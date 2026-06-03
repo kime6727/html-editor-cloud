@@ -128,10 +128,9 @@ HTMLPreview/
 │   ├── QUICK_START.md                 # 快速开始
 │   ├── SHARING_GUIDE.md               # 分享指南
 │   ├── PROJECT_SUMMARY.md             # 项目总结
-│   ├── PHASE1_SUMMARY.md              # 阶段总结
-│   ├── PHASE1_COMPLETION_REPORT.md    # 完成报告
-│   ├── IMPLEMENTATION_CHECKLIST.md    # 检查清单
-│   └── TEST_SHARE.html                # 测试页面
+│   ├── requirements.md                # 完整需求
+│   ├── DEPLOYMENT.md                  # 部署指南 🆕
+│   └── API.md                         # 后端 API 参考 🆕
 │
 └── 🏗️ 项目配置
     └── HTMLPreview.xcodeproj/         # Xcode项目
@@ -203,12 +202,12 @@ HTMLPreview/
 
 ### 5. 云端发布 ✅
 - 云端分享
-- 短链接生成
-- 自定义短链
-- 链接有效期
-- 访问统计
+- 链接有效期（Pro：7天/30天/90天/永不过期；免费：固定 1 小时）
+- 访问统计（独立访客 / 每日趋势 / Top 来源）
+- 访问日志（脱敏 IP / UA / 访问时间）
 - 发布历史管理
-- 访问密码保护
+- Pro 用户支持访问密码保护（bcrypt 存储）
+- Pro 用户支持自定义到期行为（跳转 URL / 自定义消息 / App 引导）
 
 ### 6. GitHub Pages ✅
 - GitHub Pages集成
@@ -222,9 +221,9 @@ HTMLPreview/
 - 多文件支持
 
 ### 8. 订阅系统 ✅
-- Pro订阅
-- 免费限制
-- Pro特权
+- Pro 一次性买断（Lifetime）
+- 免费限制：每月 3 次发布，单次发布 1 小时过期
+- Pro 特权：无限发布 / 访问密码 / 自定义有效期 / 自定义到期行为
 
 ### 9. 多语言支持 ✅
 - 中文
@@ -261,9 +260,9 @@ HTMLPreview/
 - **响应式**: 自适应各种屏幕
 
 ### 4. 品牌感 🎨
-- **自定义短链**: 增强品牌识别度
-- **精美UI**: 现代化的用户界面
-- **多语言**: 支持中文和英文
+- **精美 UI** - 现代化的用户界面
+- **多语言** - 支持中文和英文
+- **Pro 访问密码** - bcrypt 存储，5 次错误锁定 15 分钟
 
 ### 5. 零成本 💰
 - **免费使用**: 基础功能完全免费
@@ -342,7 +341,7 @@ class CloudService: ObservableObject {
 ```
 使用云端发布功能
     ↓
-生成短链接分享给同事
+复制访问链接分享给同事
     ↓
 同事点击链接即可查看
     ↓
@@ -353,13 +352,14 @@ class CloudService: ObservableObject {
 ```
 完成项目编辑
     ↓
-使用云端发布，设置自定义短链
+使用云端发布
+    ↓
+复制访问链接
     ↓
 发送链接给客户
     ↓
 根据客户意见现场修改并重新发布
 ```
-
 ### 5. 个人作品集 🎨
 ```
 完成作品编辑
@@ -375,16 +375,19 @@ class CloudService: ObservableObject {
 
 ### 已完成 ✅
 - [x] 本地网络分享与二维码生成
-- [x] 云端发布与短链接生成
-- [x] 自定义短链与品牌链接
-- [x] 访问统计与发布历史
-- [x] GitHub Pages集成
-- [x] Zip导出功能
-- [x] 订阅系统
-- [x] 多语言支持
-- [x] 文件夹管理
-- [x] 代码补全
-- [x] 模板库扩展
+- [x] 云端发布
+- [x] 访问密码（Pro，bcrypt）+ 链接有效期管理
+- [x] 访问统计 + 访问日志 + 7日趋势
+- [x] Pro 自定义到期行为（跳转 / 消息 / 引导）
+- [x] GitHub Pages 集成（Keychain 存 Token）
+- [x] Zip 导出 / 批量操作
+- [x] 订阅系统（Lifetime）
+- [x] 多语言支持（中 / 英）
+- [x] 文件夹管理 / 收藏 / 搜索
+- [x] 代码补全 / 语法高亮
+- [x] 模板库（15+ 模板）
+- [x] HMAC-SHA256 全 API 鉴权
+- [x] MySQL 持久化 + IP 匿名化（GDPR）
 
 ### 进行中 🚧
 - [ ] iCloud同步
