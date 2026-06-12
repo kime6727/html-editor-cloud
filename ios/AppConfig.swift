@@ -3,10 +3,10 @@ import Foundation
 enum AppConfig {
     // MARK: - API & Backend
     // 生产环境：使用远程服务器
-    static let apiBaseURL = "https://html.niceapp.eu.cc"
-    static let publishAPIBaseURL = "https://html.niceapp.eu.cc"
+    static let apiBaseURL = "http://html.niceapp.eu.cc"
+    static let publishAPIBaseURL = "http://html.niceapp.eu.cc"
     static let publishEndpoint = apiBaseURL + "/publish.php"
-    static let webAppURL = "https://html.niceapp.eu.cc/"
+    static let webAppURL = "http://html.niceapp.eu.cc/"
     
     // 开发环境：使用本地服务器
     // static let apiBaseURL = "http://localhost:8080/backend"
