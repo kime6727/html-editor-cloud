@@ -713,12 +713,12 @@ function handleSetRedirectUrl() {
  * 获取访问日志详情
  */
 function handleGetVisitLogs() {
-    $projectId = $_GET['project_id'] ?? null;
-    $userId = $_GET['user_id'] ?? null;
-    $page = (int)($_GET['page'] ?? 1);
-    $limit = (int)($_GET['limit'] ?? 50);
-    $startDate = $_GET['start_date'] ?? null;
-    $endDate = $_GET['end_date'] ?? null;
+    $projectId = $_GET['project_id'] ?? $_POST['project_id'] ?? null;
+    $userId = $_GET['user_id'] ?? $_POST['user_id'] ?? null;
+    $page = (int)($_GET['page'] ?? $_POST['page'] ?? 1);
+    $limit = (int)($_GET['limit'] ?? $_POST['limit'] ?? 50);
+    $startDate = $_GET['start_date'] ?? $_POST['start_date'] ?? null;
+    $endDate = $_GET['end_date'] ?? $_POST['end_date'] ?? null;
     
     if (!$projectId) {
         http_response_code(400);
