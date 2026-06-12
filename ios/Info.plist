@@ -8,6 +8,19 @@
 	<string>zheshimiyao112233</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app uses the camera to scan QR codes for shared HTML previews.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>html.niceapp.eu.cc</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<false/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>This app needs to access your local network to share HTML previews with nearby devices via WiFi.</string>
 	<key>NSBonjourServices</key>
