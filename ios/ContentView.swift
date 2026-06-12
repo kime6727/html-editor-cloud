@@ -267,7 +267,7 @@ struct ContentView: View {
                 } else {
                     Button(action: { showFullScreenPreview = true }) {
                         HStack(spacing: 6) {
-                            Text("RUN")
+                            Text("run".localized)
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(.green)
                             ZStack {

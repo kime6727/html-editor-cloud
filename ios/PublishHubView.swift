@@ -5,10 +5,10 @@ struct PublishHubView: View {
     let project: HTMLProject
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var documentManager: DocumentManager
-    @StateObject private var server = LocalHTMLServer()
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
-    @StateObject private var cloudService = CloudService.shared
-    @StateObject private var publishHistory = PublishHistoryManager.shared
+    @ObservedObject private var server = LocalHTMLServer()
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var cloudService = CloudService.shared
+    @ObservedObject private var publishHistory = PublishHistoryManager.shared
     
     @State private var selectedPublishMethod: PublishMethod?
     @State private var showPublishConfig = false

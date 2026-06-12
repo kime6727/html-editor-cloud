@@ -7,7 +7,7 @@ struct ProfileView: View {
     @EnvironmentObject var documentManager: DocumentManager
     
     @State private var activeSheet: ProfileSheet? = nil
-    @StateObject private var userManager = UserManager.shared
+    @ObservedObject private var userManager = UserManager.shared
     @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     @ObservedObject private var publishedManager = PublishedProjectsManager.shared
     @ObservedObject private var languageManager = LanguageManager.shared
@@ -55,7 +55,7 @@ struct ProfileView: View {
                         .buttonStyle(PlainButtonStyle())
                         
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("HTML Editor Pro")
+                            Text("html_editor_pro".localized)
                                 .font(.headline)
                             
                             HStack(spacing: 8) {

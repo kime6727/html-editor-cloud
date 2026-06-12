@@ -135,8 +135,8 @@ class LocalHTMLServer: ObservableObject {
         let responseData = buildResponseData(for: requestPath)
         
         connection.send(content: responseData, completion: .contentProcessed { error in
-            if error != nil {
-                NSLog("[LocalHTMLServer] send error: \(error!.localizedDescription)")
+            if let error = error {
+                NSLog("[LocalHTMLServer] send error: \(error.localizedDescription)")
             }
             connection.cancel()
         })

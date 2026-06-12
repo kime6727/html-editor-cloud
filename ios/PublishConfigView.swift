@@ -6,7 +6,7 @@ struct PublishConfigView: View {
     @Binding var isPresented: Bool
     let onPublish: (PublishConfig) -> Void
     
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     
     @State private var expireDays: Int = 0
     @State private var enableStats: Bool = true

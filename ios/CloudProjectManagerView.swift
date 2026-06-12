@@ -3,9 +3,9 @@ import SwiftUI
 struct CloudProjectManagerView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var documentManager: DocumentManager
-    @StateObject private var cloudManager = CloudProjectManager.shared
-    @StateObject private var cloudService = CloudService.shared
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var cloudManager = CloudProjectManager.shared
+    @ObservedObject private var cloudService = CloudService.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     
     let project: HTMLProject
     
@@ -522,9 +522,9 @@ struct CloudProjectManagerView: View {
 struct PasswordSettingView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var documentManager: DocumentManager
-    @StateObject private var cloudManager = CloudProjectManager.shared
-    @StateObject private var cloudService = CloudService.shared
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var cloudManager = CloudProjectManager.shared
+    @ObservedObject private var cloudService = CloudService.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
 
     let project: HTMLProject
     let cloudId: String
@@ -715,9 +715,9 @@ struct PasswordSettingView: View {
 struct ExpirySettingView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var documentManager: DocumentManager
-    @StateObject private var cloudManager = CloudProjectManager.shared
-    @StateObject private var cloudService = CloudService.shared
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var cloudManager = CloudProjectManager.shared
+    @ObservedObject private var cloudService = CloudService.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
 
     let project: HTMLProject
     let cloudId: String

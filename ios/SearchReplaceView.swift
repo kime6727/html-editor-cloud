@@ -36,7 +36,7 @@ struct SearchReplaceView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else {
-                        Text("No results")
+                        Text("no_results".localized)
                             .font(.caption)
                             .foregroundColor(.red)
                     }
@@ -70,18 +70,18 @@ struct SearchReplaceView: View {
                     Image(systemName: "arrow.2.squarepath")
                         .foregroundColor(.secondary)
                     
-                    TextField("Replace", text: $replaceText)
+                    TextField("replace".localized, text: $replaceText)
                         .textFieldStyle(.plain)
                         .onSubmit {
                             replaceOne()
                         }
                     
-                    Button("Replace") {
+                    Button("replace".localized) {
                         replaceOne()
                     }
                     .disabled(searchText.isEmpty || replaceText.isEmpty || matchCount == 0)
                     
-                    Button("All") {
+                    Button("replace_all".localized) {
                         replaceAll()
                     }
                     .disabled(searchText.isEmpty || replaceText.isEmpty || matchCount == 0)

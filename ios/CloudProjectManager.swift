@@ -436,7 +436,7 @@ struct CloudActionResponse: Codable {
 struct RedirectSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var documentManager: DocumentManager
-    @StateObject private var cloudManager = CloudProjectManager.shared
+    @ObservedObject private var cloudManager = CloudProjectManager.shared
     
     let cloudId: String
     @Binding var isPresented: Bool
@@ -547,7 +547,7 @@ struct RedirectSettingsView: View {
 // MARK: - Visit Logs View
 struct VisitLogsView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var cloudManager = CloudProjectManager.shared
+    @ObservedObject private var cloudManager = CloudProjectManager.shared
     
     let cloudId: String
     let projectName: String

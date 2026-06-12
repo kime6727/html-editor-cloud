@@ -3,7 +3,7 @@ import SwiftUI
 struct BatchOperationsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var documentManager: DocumentManager
-    @StateObject private var cloudManager = CloudProjectManager.shared
+    @ObservedObject private var cloudManager = CloudProjectManager.shared
     
     @Binding var selectedProjectIds: Set<String>
     @State private var selectedOperation: BatchOperation = .delete

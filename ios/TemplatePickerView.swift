@@ -79,7 +79,7 @@ struct TemplateCard: View {
                     VStack {
                         HStack {
                             Spacer()
-                            Text("PRO")
+                            Text("pro_tag".localized)
                                 .font(.system(size: 9, weight: .bold))
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 6)

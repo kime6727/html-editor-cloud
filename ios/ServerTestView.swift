@@ -292,7 +292,11 @@ struct ServerTestView: View {
         log("Signature: \(signature.prefix(8))...")
 
         let testURL = AppConfig.publishAPIBaseURL + "/publish.php"
-        var request = URLRequest(url: URL(string: testURL)!)
+        guard let requestURL = URL(string: testURL) else {
+        log("Invalid URL: \(testURL)")
+        return
+    }
+    var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         HMACAuth.applyHeaders(to: &request)
@@ -335,7 +339,11 @@ struct ServerTestView: View {
     private func runUserSyncTest(index: Int) async {
         let url = AppConfig.apiBaseURL + "/sync_user.php"
 
-        var request = URLRequest(url: URL(string: url)!)
+        guard let requestURL = URL(string: url) else {
+        log("Invalid URL: \(url)")
+        return
+    }
+    var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         HMACAuth.applyHeaders(to: &request)
@@ -381,7 +389,11 @@ struct ServerTestView: View {
         log("API-Key: \(AppConfig.apiKey.prefix(4))****")
         log("User: \(UserManager.shared.userId.prefix(8))...")
 
-        var request = URLRequest(url: URL(string: url)!)
+        guard let requestURL = URL(string: url) else {
+        log("Invalid URL: \(url)")
+        return
+    }
+    var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         HMACAuth.applyHeaders(to: &request)
         request.setValue(UserManager.shared.userId, forHTTPHeaderField: "X-User-ID")
@@ -491,7 +503,11 @@ struct ServerTestView: View {
 
         log("POST \(url)")
 
-        var request = URLRequest(url: URL(string: url)!)
+        guard let requestURL = URL(string: url) else {
+        log("Invalid URL: \(url)")
+        return
+    }
+    var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         HMACAuth.applyHeaders(to: &request)
@@ -547,7 +563,11 @@ struct ServerTestView: View {
 
         log("POST \(url)")
 
-        var request = URLRequest(url: URL(string: url)!)
+        guard let requestURL = URL(string: url) else {
+        log("Invalid URL: \(url)")
+        return
+    }
+    var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         HMACAuth.applyHeaders(to: &request)
@@ -606,7 +626,11 @@ struct ServerTestView: View {
 
         log("POST \(url)")
 
-        var request = URLRequest(url: URL(string: url)!)
+        guard let requestURL = URL(string: url) else {
+        log("Invalid URL: \(url)")
+        return
+    }
+    var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         HMACAuth.applyHeaders(to: &request)

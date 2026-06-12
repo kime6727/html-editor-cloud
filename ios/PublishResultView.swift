@@ -8,7 +8,7 @@ struct PublishResultView: View {
     var project: HTMLProject?
     var publishResult: PublishResult?
     
-    @StateObject private var cloudService = CloudService.shared
+    @ObservedObject private var cloudService = CloudService.shared
     private let cloudServiceActor = CloudService.shared
     @State private var qrImage: UIImage?
     @State private var showCopyToast = false

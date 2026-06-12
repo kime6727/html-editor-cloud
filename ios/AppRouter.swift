@@ -32,7 +32,7 @@ class AppRouter: ObservableObject {
 struct RootView: View {
     @EnvironmentObject var appRouter: AppRouter
     @EnvironmentObject var documentManager: DocumentManager
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     
     var body: some View {
         Group {
@@ -121,7 +121,7 @@ struct SplashView: View {
                     .opacity(startAnimation ? 1 : 0)
                 
                 VStack(spacing: 12) {
-                    Text("HTML Editor Pro")
+                    Text("html_editor_pro".localized)
                         .font(.system(size: 36, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     

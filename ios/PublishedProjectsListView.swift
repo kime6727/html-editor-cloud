@@ -3,7 +3,7 @@ import SwiftUI
 struct PublishedProjectsListView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var documentManager: DocumentManager
-    @StateObject private var manager = PublishedProjectsManager.shared
+    @ObservedObject private var manager = PublishedProjectsManager.shared
     @ObservedObject private var cloudService = CloudService.shared
     @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     

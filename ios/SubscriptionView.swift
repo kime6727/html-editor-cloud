@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SubscriptionView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     
     var body: some View {
         ScrollView {
@@ -181,7 +181,7 @@ struct FeatureRow: View {
                         .font(.headline)
                     
                     if isNew {
-                        Text("NEW")
+                        Text("new_tag".localized)
                             .font(.system(size: 10, weight: .black))
                             .foregroundColor(.white)
                             .padding(.horizontal, 6)

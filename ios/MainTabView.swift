@@ -288,7 +288,7 @@ struct AboutView: View {
                         UIApplication.shared.open(url)
                     }
                 }) {
-                    Text("Visit Official Website")
+                    Text("visit_official_website".localized)
                         .font(.subheadline.bold())
                         .foregroundColor(Color("Color"))
                 }
