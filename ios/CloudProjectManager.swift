@@ -78,12 +78,17 @@ class CloudProjectManager: ObservableObject {
             let data = try await NetworkRetryManager.shared.execute(
                 policy: .exponentialBackoff(maxRetries: 3, baseDelay: 0.8)
             ) { [apiBaseURL] in
-                var comps = URLComponents(string: "\(apiBaseURL)/api/projects.php")!
+                guard var comps = URLComponents(string: "\(apiBaseURL)/api/projects.php") else {
+                    throw URLError(.badURL)
+                }
                 comps.queryItems = [
                     URLQueryItem(name: "action", value: "list"),
                     URLQueryItem(name: "user_id", value: userId)
                 ]
-                var request = URLRequest(url: comps.url!)
+                guard let compsUrl = comps.url else {
+                    throw URLError(.badURL)
+                }
+                var request = URLRequest(url: compsUrl)
                 HMACAuth.applyHeaders(to: &request)
                 request.timeoutInterval = 8
                 let (data, _) = try await URLSession.shared.data(for: request)
@@ -125,7 +130,8 @@ class CloudProjectManager: ObservableObject {
     
     // MARK: - Toggle Project Status
     func toggleProjectStatus(cloudId: String, isActive: Bool) async -> Bool {
-        var request = URLRequest(url: URL(string: "\(apiBaseURL)/api/projects.php")!)
+guard let requestURL = URL(string: "\(apiBaseURL)/api/projects.php") else { return false }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         applyAuthHeaders(to: &request)
@@ -151,7 +157,8 @@ class CloudProjectManager: ObservableObject {
     
     // MARK: - Unpublish Project
     func unpublishProject(cloudId: String) async -> Bool {
-        var request = URLRequest(url: URL(string: "\(apiBaseURL)/api/projects.php")!)
+guard let requestURL = URL(string: "\(apiBaseURL)/api/projects.php") else { return false }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         applyAuthHeaders(to: &request)
@@ -179,7 +186,8 @@ class CloudProjectManager: ObservableObject {
     
     // MARK: - Set Access Password
     func setAccessPassword(cloudId: String, password: String) async -> Bool {
-        var request = URLRequest(url: URL(string: "\(apiBaseURL)/api/projects.php")!)
+guard let requestURL = URL(string: "\(apiBaseURL)/api/projects.php") else { return false }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         applyAuthHeaders(to: &request)
@@ -211,7 +219,8 @@ class CloudProjectManager: ObservableObject {
     
     // MARK: - Remove Access Password
     func removeAccessPassword(cloudId: String) async -> Bool {
-        var request = URLRequest(url: URL(string: "\(apiBaseURL)/api/projects.php")!)
+guard let requestURL = URL(string: "\(apiBaseURL)/api/projects.php") else { return false }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         applyAuthHeaders(to: &request)
@@ -242,7 +251,8 @@ class CloudProjectManager: ObservableObject {
     
     // MARK: - Set Expiry Date
     func setExpiryDate(cloudId: String, expiresAt: Date?) async -> Bool {
-        var request = URLRequest(url: URL(string: "\(apiBaseURL)/api/projects.php")!)
+guard let requestURL = URL(string: "\(apiBaseURL)/api/projects.php") else { return false }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         applyAuthHeaders(to: &request)
@@ -278,7 +288,8 @@ class CloudProjectManager: ObservableObject {
     
     // MARK: - Update Content
     func updateProjectContent(projectId: String, content: String) async -> Bool {
-        var request = URLRequest(url: URL(string: "\(apiBaseURL)/api/projects.php")!)
+guard let requestURL = URL(string: "\(apiBaseURL)/api/projects.php") else { return false }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         applyAuthHeaders(to: &request)
@@ -304,7 +315,8 @@ class CloudProjectManager: ObservableObject {
     
     // MARK: - Set Expired Redirect URL
     func setExpiredRedirect(cloudId: String, redirectType: RedirectType, redirectUrl: String? = nil, customMessage: String? = nil) async -> Bool {
-        var request = URLRequest(url: URL(string: "\(apiBaseURL)/api/projects.php")!)
+guard let requestURL = URL(string: "\(apiBaseURL)/api/projects.php") else { return false }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         applyAuthHeaders(to: &request)
@@ -375,7 +387,8 @@ class CloudProjectManager: ObservableObject {
     
     // MARK: - Batch Operation
     func batchOperation(operation: String, projectIds: [String], params: [String: Any] = [:]) async -> (success: Bool, successCount: Int, failCount: Int) {
-        var request = URLRequest(url: URL(string: "\(apiBaseURL)/api/projects.php")!)
+guard let requestURL = URL(string: "\(apiBaseURL)/api/projects.php") else { return (false, 0, 0) }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         applyAuthHeaders(to: &request)

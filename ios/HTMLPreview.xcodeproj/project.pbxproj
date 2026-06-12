@@ -57,6 +57,7 @@
 		H10000010000000000000001 /* PublishHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000010000000000000001 /* PublishHubView.swift */; };
 		H10000010000000000000002 /* PublishHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000010000000000000002 /* PublishHistoryManager.swift */; };
 		H10000010000000000000003 /* EnhancedPublishResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000010000000000000003 /* EnhancedPublishResultView.swift */; };
+		H10000010000000000000004 /* BatchOperationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000010000000000000004 /* BatchOperationsView.swift */; };
 		HA1 /* HMACAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = HA2 /* HMACAuth.swift */; };
 		I10000010000000000000001 /* ZipExportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000010000000000000001 /* ZipExportManager.swift */; };
 		J10000010000000000000001 /* CloudProjectManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000001 /* CloudProjectManagerView.swift */; };
@@ -119,6 +120,7 @@
 		H20000010000000000000001 /* PublishHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishHubView.swift; sourceTree = "<group>"; };
 		H20000010000000000000002 /* PublishHistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishHistoryManager.swift; sourceTree = "<group>"; };
 		H20000010000000000000003 /* EnhancedPublishResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedPublishResultView.swift; sourceTree = "<group>"; };
+		H20000010000000000000004 /* BatchOperationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchOperationsView.swift; sourceTree = "<group>"; };
 		HA2 /* HMACAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMACAuth.swift; sourceTree = "<group>"; };
 		I20000010000000000000001 /* ZipExportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipExportManager.swift; sourceTree = "<group>"; };
 		J20000010000000000000001 /* CloudProjectManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudProjectManagerView.swift; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 				H20000010000000000000001 /* PublishHubView.swift */,
 				H20000010000000000000002 /* PublishHistoryManager.swift */,
 				H20000010000000000000003 /* EnhancedPublishResultView.swift */,
+				H20000010000000000000004 /* BatchOperationsView.swift */,
 				I20000010000000000000001 /* ZipExportManager.swift */,
 				A20000010000000000000007 /* Assets.xcassets */,
 				A20000010000000000000008 /* Info.plist */,
@@ -346,6 +349,7 @@
 				H10000010000000000000001 /* PublishHubView.swift in Sources */,
 				H10000010000000000000002 /* PublishHistoryManager.swift in Sources */,
 				H10000010000000000000003 /* EnhancedPublishResultView.swift in Sources */,
+				H10000010000000000000004 /* BatchOperationsView.swift in Sources */,
 				I10000010000000000000001 /* ZipExportManager.swift in Sources */,
 				J10000010000000000000001 /* CloudProjectManagerView.swift in Sources */,
 				J10000010000000000000002 /* CloudProjectManager.swift in Sources */,

@@ -15,7 +15,8 @@ class CloudService: ObservableObject {
     private let deleteUrl = AppConfig.apiBaseURL + "/delete.php"
     
     func deleteProject(_ cloudId: String, userId: String? = nil) async throws {
-        var request = URLRequest(url: URL(string: deleteUrl)!)
+        guard let requestURL = URL(string: deleteUrl) else { throw URLError(.badURL) }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         HMACAuth.applyHeaders(to: &request)
@@ -34,7 +35,8 @@ class CloudService: ObservableObject {
     
     func updateProjectExpiry(cloudId: String, userId: String, expireDays: Int? = nil, expireMinutes: Int? = nil, makePermanent: Bool = false, accessPassword: String? = nil, removePassword: Bool = false) async -> (success: Bool, expiresAt: String?, isPermanent: Bool, message: String) {
         let url = AppConfig.apiBaseURL + "/api/projects.php"
-        var request = URLRequest(url: URL(string: url)!)
+        guard let requestURL = URL(string: url) else { return (false, nil, false, "invalid_url".localized) }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         HMACAuth.applyHeaders(to: &request)
@@ -217,7 +219,15 @@ class CloudService: ObservableObject {
         
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
 
-        var request = URLRequest(url: URL(string: apiUrl)!)
+        guard let requestURL = URL(string: apiUrl) else {
+            await MainActor.run {
+                error = "invalid_url".localized
+                isPublishing = false
+                lastPublishErrorType = .networkError
+            }
+            return PublishResult(url: "", id: "", shouldClearCloudId: false)
+        }
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         HMACAuth.applyHeaders(to: &request)

@@ -178,7 +178,7 @@ class SubscriptionManager: ObservableObject {
     }
     
     func syncUserProStatus() async {
-        let url = URL(string: AppConfig.apiBaseURL + "/sync_user.php")!
+        guard let url = URL(string: AppConfig.apiBaseURL + "/sync_user.php") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
