@@ -59,8 +59,6 @@
 		H10000010000000000000003 /* EnhancedPublishResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000010000000000000003 /* EnhancedPublishResultView.swift */; };
 		HA1 /* HMACAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = HA2 /* HMACAuth.swift */; };
 		I10000010000000000000001 /* ZipExportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000010000000000000001 /* ZipExportManager.swift */; };
-		I10000010000000000000002 /* GitHubPublishService.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000010000000000000002 /* GitHubPublishService.swift */; };
-		I10000010000000000000003 /* GitHubConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000010000000000000003 /* GitHubConfigView.swift */; };
 		J10000010000000000000001 /* CloudProjectManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000001 /* CloudProjectManagerView.swift */; };
 		J10000010000000000000002 /* CloudProjectManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000010000000000000002 /* CloudProjectManager.swift */; };
 		K10000010000000000000001 /* UserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = K20000010000000000000001 /* UserManager.swift */; };
@@ -123,8 +121,6 @@
 		H20000010000000000000003 /* EnhancedPublishResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedPublishResultView.swift; sourceTree = "<group>"; };
 		HA2 /* HMACAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HMACAuth.swift; sourceTree = "<group>"; };
 		I20000010000000000000001 /* ZipExportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipExportManager.swift; sourceTree = "<group>"; };
-		I20000010000000000000002 /* GitHubPublishService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubPublishService.swift; sourceTree = "<group>"; };
-		I20000010000000000000003 /* GitHubConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubConfigView.swift; sourceTree = "<group>"; };
 		J20000010000000000000001 /* CloudProjectManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudProjectManagerView.swift; sourceTree = "<group>"; };
 		J20000010000000000000002 /* CloudProjectManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudProjectManager.swift; sourceTree = "<group>"; };
 		K20000010000000000000001 /* UserManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserManager.swift; sourceTree = "<group>"; };
@@ -213,8 +209,6 @@
 				H20000010000000000000002 /* PublishHistoryManager.swift */,
 				H20000010000000000000003 /* EnhancedPublishResultView.swift */,
 				I20000010000000000000001 /* ZipExportManager.swift */,
-				I20000010000000000000002 /* GitHubPublishService.swift */,
-				I20000010000000000000003 /* GitHubConfigView.swift */,
 				A20000010000000000000007 /* Assets.xcassets */,
 				A20000010000000000000008 /* Info.plist */,
 				DF1315A96D18AD6E30CCB815 /* AdvancedSettingsView.swift */,
@@ -353,8 +347,6 @@
 				H10000010000000000000002 /* PublishHistoryManager.swift in Sources */,
 				H10000010000000000000003 /* EnhancedPublishResultView.swift in Sources */,
 				I10000010000000000000001 /* ZipExportManager.swift in Sources */,
-				I10000010000000000000002 /* GitHubPublishService.swift in Sources */,
-				I10000010000000000000003 /* GitHubConfigView.swift in Sources */,
 				J10000010000000000000001 /* CloudProjectManagerView.swift in Sources */,
 				J10000010000000000000002 /* CloudProjectManager.swift in Sources */,
 				2251B30740732DEEAD749BA3 /* AdvancedSettingsView.swift in Sources */,

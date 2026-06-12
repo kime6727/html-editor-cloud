@@ -185,9 +185,9 @@ class PublishedProjectsManager: ObservableObject {
         let localProjects = documentManager?.projects ?? []
 
         publishedProjects = cloudProjects.map { cp in
-            let local = localProjects.first { $0.id.uuidString == cp.projectId }
+            let local = localProjects.first { $0.cloudId == cp.projectId }
             return PublishedProjectInfo(
-                id: local?.id ?? UUID(uuidString: cp.projectId) ?? UUID(),
+                id: local?.id ?? UUID(),
                 projectName: cp.projectName,
                 cloudUrl: cp.url,
                 cloudId: cp.id,

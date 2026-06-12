@@ -351,7 +351,8 @@ class CloudService: ObservableObject {
         
         urlComponents.queryItems = [
             URLQueryItem(name: "action", value: "stats"),
-            URLQueryItem(name: "project_id", value: cloudId)
+            URLQueryItem(name: "project_id", value: cloudId),
+            URLQueryItem(name: "user_id", value: userId)
         ]
         
         guard let url = urlComponents.url else { return nil }

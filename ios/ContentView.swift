@@ -762,6 +762,21 @@ struct ContentView: View {
     private func performPublish(project: HTMLProject, config: PublishConfig) {
         Task {
             if let result = await cloudService.publishProjectWithDetails(project, config: config) {
+                // 检查发布结果是否有效
+                if result.url.isEmpty {
+                    await MainActor.run {
+                        let errorCode = cloudService.lastPublishServerErrorCode
+                        if errorCode == .proRequired {
+                            subscriptionManager.showPaywall = true
+                        } else {
+                            documentManager.toastItem = ToastItem(
+                                message: errorCode.localizedMessage,
+                                type: .error
+                            )
+                        }
+                    }
+                    return
+                }
                 await MainActor.run {
                     self.resultProject = project
                     self.publishingUrl = result.url

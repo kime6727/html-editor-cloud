@@ -5,7 +5,7 @@ struct BatchOperationsView: View {
     @EnvironmentObject var documentManager: DocumentManager
     @StateObject private var cloudManager = CloudProjectManager.shared
     
-    @Binding var selectedProjectIds: Set<UUID>
+    @Binding var selectedProjectIds: Set<String>
     @State private var selectedOperation: BatchOperation = .delete
     @State private var isExecuting = false
     @State private var showResult = false

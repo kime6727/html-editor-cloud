@@ -67,8 +67,19 @@ if (!hash_equals($expectedSignature, $signature)) {
 
 require_once __DIR__ . '/../database/Database.php';
 
-// 获取action
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
+// 获取action（GET优先，POST JSON body次之，POST form data最后）
+$action = $_GET['action'] ?? '';
+if (empty($action) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = file_get_contents('php://input');
+    $postData = json_decode($input, true);
+    if ($postData && isset($postData['action'])) {
+        $action = $postData['action'];
+        // 将 JSON body 数据合并到 $_POST 以便各 handler 使用
+        $_POST = array_merge($_POST, $postData);
+    } else {
+        $action = $_POST['action'] ?? '';
+    }
+}
 
 // 路由分发
 switch ($action) {
@@ -175,6 +186,7 @@ function handleListProjects() {
  */
 function handleGetProject() {
     $projectId = $_GET['project_id'] ?? null;
+    $userId = $_GET['user_id'] ?? $_POST['user_id'] ?? null;
     
     if (!$projectId) {
         http_response_code(400);
@@ -183,6 +195,9 @@ function handleGetProject() {
     }
 
     try {
+        // 验证所有权
+        requireProjectOwner($projectId, $userId);
+
         $project = db()->queryOne(
             "SELECT * FROM projects WHERE project_id = ? AND status != 'deleted'",
             [$projectId]
@@ -522,6 +537,7 @@ function handleUnpublish() {
  */
 function handleGetStats() {
     $projectId = $_GET['project_id'] ?? null;
+    $userId = $_GET['user_id'] ?? $_POST['user_id'] ?? null;
     
     if (!$projectId) {
         http_response_code(400);
@@ -530,6 +546,9 @@ function handleGetStats() {
     }
     
     try {
+        // 验证所有权
+        requireProjectOwner($projectId, $userId);
+
         $project = db()->queryOne(
             "SELECT * FROM projects WHERE project_id = ?",
             [$projectId]
@@ -742,8 +761,8 @@ function handleGetVisitLogs() {
              FROM visit_logs
              $where
              ORDER BY visited_at DESC
-             LIMIT ? OFFSET ?",
-            array_merge($params, [$limit, $offset])
+             LIMIT " . (int)$limit . " OFFSET " . (int)$offset,
+            $params
         );
 
         // 处理日志数据
@@ -851,6 +870,10 @@ function handleBatchOperation() {
                         
                     case 'toggle_status':
                         $newStatus = $params['status'] ?? 'active';
+                        // 只允许 active 和 inactive，防止设置 deleted/banned 等无效状态
+                        if (!in_array($newStatus, ['active', 'inactive'])) {
+                            $newStatus = 'active';
+                        }
                         db()->execute(
                             "UPDATE projects SET status = ?, updated_at = NOW() WHERE project_id = ?",
                             [$newStatus, $projectId]

@@ -429,6 +429,7 @@ struct CloudListResponse: Codable {
 struct CloudActionResponse: Codable {
     let success: Bool
     let message: String
+    let code: String?
 }
 
 // MARK: - Redirect Settings View

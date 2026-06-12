@@ -56,7 +56,6 @@ CREATE TABLE IF NOT EXISTS `projects` (
   `expired_redirect_type` ENUM('app_promotion','custom_url','custom_message') NOT NULL DEFAULT 'app_promotion',
   `expired_redirect_url` VARCHAR(500) DEFAULT NULL,
   `expired_custom_message` TEXT DEFAULT NULL,
-  `custom_slug` VARCHAR(50) DEFAULT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `last_visited_at` DATETIME DEFAULT NULL,

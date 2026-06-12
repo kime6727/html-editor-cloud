@@ -24,10 +24,7 @@ ALTER TABLE `users` ADD COLUMN `pro_expires_at` DATETIME DEFAULT NULL COMMENT 'P
 -- 2a. 扩大 user_id 字段长度
 ALTER TABLE `projects` MODIFY `user_id` VARCHAR(64) DEFAULT NULL COMMENT '发布者用户ID';
 
--- 2b. 添加 custom_slug 字段
-ALTER TABLE `projects` ADD COLUMN `custom_slug` VARCHAR(50) DEFAULT NULL COMMENT '自定义短链别名' AFTER `expired_custom_message`;
-
--- 2c. 添加 idx_last_visited 索引
+-- 2b. 添加 idx_last_visited 索引
 ALTER TABLE `projects` ADD INDEX `idx_last_visited` (`last_visited_at`);
 
 

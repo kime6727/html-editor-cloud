@@ -65,7 +65,6 @@ CREATE TABLE IF NOT EXISTS `projects` (
   `expired_redirect_type` ENUM('app_promotion','custom_url','custom_message') NOT NULL DEFAULT 'app_promotion' COMMENT '到期后动作类型',
   `expired_redirect_url` VARCHAR(500) DEFAULT NULL COMMENT '到期重定向URL (仅同源白名单)',
   `expired_custom_message` TEXT DEFAULT NULL COMMENT '到期自定义消息',
-  `custom_slug` VARCHAR(50) DEFAULT NULL COMMENT '自定义短链别名',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `last_visited_at` DATETIME DEFAULT NULL COMMENT '最后访问时间',

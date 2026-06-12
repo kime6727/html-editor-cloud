@@ -14,13 +14,13 @@ struct PublishRecord: Identifiable, Codable, Equatable {
     enum PublishMethod: String, Codable {
         case local
         case cloud
-        case github
+        case _github_legacy = "github"  // kept for backward-compatible decoding only
         
         var displayName: String {
             switch self {
             case .local: return "Local Network"
             case .cloud: return "Cloud"
-            case .github: return "GitHub Pages"
+            case ._github_legacy: return "Cloud"
             }
         }
     }
@@ -113,7 +113,7 @@ class PublishHistoryManager: ObservableObject {
     private func loadRecords() {
         if let data = UserDefaults.standard.data(forKey: saveKey),
            let decoded = try? JSONDecoder().decode([PublishRecord].self, from: data) {
-            records = decoded
+            records = decoded.filter { $0.method != ._github_legacy }
         }
     }
     

@@ -48,13 +48,13 @@ $processed = 0;
 $errors = 0;
 
 try {
-    // 查找已过期但状态还是active的项目
+    // 查找已过期但尚未处理文件替换的项目（status 可能是 active 或 expired）
     $expiredProjects = db()->query(
         "SELECT project_id, project_name, expires_at, status 
          FROM projects 
          WHERE expires_at IS NOT NULL 
          AND expires_at < NOW() 
-         AND status = 'active'"
+         AND status IN ('active', 'expired')"
     );
     
     if (empty($expiredProjects)) {

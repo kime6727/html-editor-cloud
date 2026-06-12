@@ -15,16 +15,14 @@ enum ServerErrorCode: String {
     case permissionDenied = "permission_denied"
     /// 项目不存在
     case projectNotFound = "project_not_found"
-    /// 端点废弃（migration 中转的 410）
-    case endpointRemoved = "endpoint_removed"
-    /// 端点已迁移（用于让客户端转到新端点）
-    case endpointMoved = "endpoint_moved"
     /// HMAC 签名失败
     case invalidSignature = "invalid_signature"
     /// 时间戳超出允许窗口
     case timestampExpired = "timestamp_expired"
-    /// 密码错误次数过多（已锁定）
-    case tooManyAttempts = "too_many_attempts"
+    /// 请求参数无效（字段缺失/格式错误）
+    case invalidRequest = "invalid_request"
+    /// 操作失败（服务端异常）
+    case operationFailed = "operation_failed"
     /// 未知 / 业务码缺失
     case unknown
 
@@ -61,12 +59,12 @@ extension ServerErrorCode {
             return "permission_denied".localized
         case .projectNotFound:
             return "project_not_found".localized
-        case .endpointRemoved, .endpointMoved:
-            return "client_outdated_update_required".localized
         case .invalidSignature, .timestampExpired:
             return "client_outdated_update_required".localized
-        case .tooManyAttempts:
-            return "too_many_attempts".localized
+        case .invalidRequest:
+            return "invalid_request".localized
+        case .operationFailed:
+            return "operation_failed".localized
         case .unknown:
             return "operation_failed".localized
         }
@@ -80,7 +78,7 @@ extension ServerErrorCode {
     /// 是否应触发 AppStore 升级（提示用户更新 App）
     var triggersAppUpdatePrompt: Bool {
         switch self {
-        case .endpointRemoved, .endpointMoved, .invalidSignature, .timestampExpired:
+        case .invalidSignature, .timestampExpired:
             return true
         default:
             return false

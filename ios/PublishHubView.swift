@@ -25,8 +25,6 @@ struct PublishHubView: View {
     @State private var showExportZip = false
     @State private var exportSuccess = false
     @State private var networkStatus = NetworkMonitor.shared
-    @State private var showGitHubConfig = false
-    @State private var showGitHubPublishResult = false
     @State private var showPublishedProjects = false
     
     private var liveProject: HTMLProject {
@@ -36,13 +34,11 @@ struct PublishHubView: View {
     enum PublishMethod: String, CaseIterable {
         case localNetwork = "local_network"
         case cloud = "cloud_publish"
-        case github = "github_pages"
         
         var title: String {
             switch self {
             case .localNetwork: return "publish_local".localized
             case .cloud: return "publish_cloud".localized
-            case .github: return "publish_github".localized
             }
         }
         
@@ -50,7 +46,6 @@ struct PublishHubView: View {
             switch self {
             case .localNetwork: return "publish_local_desc".localized
             case .cloud: return "publish_cloud_desc".localized
-            case .github: return "publish_github_desc".localized
             }
         }
         
@@ -58,7 +53,6 @@ struct PublishHubView: View {
             switch self {
             case .localNetwork: return "wifi"
             case .cloud: return "icloud.and.arrow.up"
-            case .github: return "link"
             }
         }
         
@@ -66,7 +60,6 @@ struct PublishHubView: View {
             switch self {
             case .localNetwork: return .green
             case .cloud: return .blue
-            case .github: return .purple
             }
         }
     }
@@ -122,9 +115,6 @@ struct PublishHubView: View {
             }
             .fullScreenCover(isPresented: $showQRCode) {
                 QRCodeFullScreenView(url: qrURL, isPresented: $showQRCode)
-            }
-            .sheet(isPresented: $showGitHubConfig) {
-                GitHubConfigView()
             }
             .sheet(isPresented: $showPublishedProjects) {
                 PublishedProjectsListView()
@@ -347,8 +337,6 @@ struct PublishHubView: View {
             startLocalSharing()
         case .cloud:
             startCloudPublish()
-        case .github:
-            startGithubPublish()
         }
     }
     
@@ -384,59 +372,6 @@ struct PublishHubView: View {
         
         // 所有用户都可以发布，免费用户默认5分钟过期
         showPublishConfig = true
-    }
-    
-    @StateObject private var githubService = GitHubPublishService.shared
-    
-    private func startGithubPublish() {
-        if !githubService.isConfigured {
-            showGitHubConfig = true
-            return
-        }
-        
-        publishToGitHub()
-    }
-    
-    private func publishToGitHub() {
-        isPublishing = true
-        publishProgress = 0
-        publishProgressText = "preparing_files".localized
-        
-        Task {
-            do {
-                let result = try await githubService.publishProject(liveProject) { progress, message in
-                    DispatchQueue.main.async {
-                        publishProgress = progress
-                        publishProgressText = message
-                    }
-                }
-                
-                await MainActor.run {
-                    isPublishing = false
-                    
-                    PublishHistoryManager.shared.addRecord(
-                        projectId: liveProject.id,
-                        projectName: liveProject.name,
-                        url: result.url,
-                        method: .github,
-                        visitCount: 0
-                    )
-                    
-                    publishingUrl = result.url
-                    publishResult = PublishResult(
-                        url: result.url,
-                        id: "github_\(result.projectName)",
-                        expiresAt: nil
-                    )
-                    showPublishResult = true
-                }
-            } catch {
-                await MainActor.run {
-                    isPublishing = false
-                    documentManager.toastItem = ToastItem(message: error.localizedDescription, type: .error)
-                }
-            }
-        }
     }
     
     private func performPublish(config: PublishConfig) {

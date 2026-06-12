@@ -238,6 +238,17 @@ if ($user_id) {
     }
 }
 
+// 免费用户不允许设置密码（避免设置后无法修改/移除）
+if (!$is_pro && !empty($access_password)) {
+    http_response_code(403);
+    echo json_encode([
+        'status' => 'error',
+        'code' => 'pro_required',
+        'message' => 'Pro subscription required to set access password. Please upgrade to Pro.'
+    ]);
+    exit;
+}
+
 // 免费用户发布次数限制（月度限制）
 // 检查用户当月发布的项目总数（包括更新）
 if (!$is_pro && $user_id) {
@@ -753,48 +764,4 @@ function restoreFromBackup($targetPath) {
     }
 }
 
-/**
- * 处理项目过期：将原始文件备份为 .bak，并替换为过期提示页面
- */
-function handleProjectExpire($projectId, $uploadDir) {
-    $projectDir = $uploadDir . $projectId;
-    
-    if (!is_dir($projectDir)) return false;
-    
-    // 读取过期模板
-    $templatePath = __DIR__ . '/expired_template.html';
-    if (!file_exists($templatePath)) return false;
-    
-    $expiredContent = file_get_contents($templatePath);
-    
-    $files = glob($projectDir . '/*');
-    $backedUp = 0;
-    
-    foreach ($files as $file) {
-        if (is_file($file)) {
-            $filename = basename($file);
-            
-            // 跳过 .bak 文件和 .htaccess
-            if (substr($filename, -4) === '.bak' || $filename === '.htaccess') {
-                continue;
-            }
-            
-            // 备份原始文件
-            $bakFile = $file . '.bak';
-            if (copy($file, $bakFile)) {
-                // HTML文件替换为过期提示页面
-                if (preg_match('/\.(html|htm)$/i', $filename)) {
-                    file_put_contents($file, $expiredContent);
-                } else {
-                    // 其他文件删除（已备份）
-                    unlink($file);
-                }
-                $backedUp++;
-            }
-        }
-    }
-    
-    error_log("[Expire] Project {$projectId} expired: backed up {$backedUp} files");
-    return true;
-}
 ?>

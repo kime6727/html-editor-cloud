@@ -193,9 +193,12 @@ class SubscriptionManager: ObservableObject {
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                print("[SubscriptionManager] Pro status synced to server successfully")
             } else {
+                print("[SubscriptionManager] Pro status sync failed with status: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
             }
         } catch {
+            print("[SubscriptionManager] Pro status sync network error: \(error.localizedDescription)")
         }
     }
     

@@ -50,7 +50,7 @@ try {
         exit;
     }
     
-    if ($project['status'] === 'deleted' || $project['status'] === 'banned') {
+    if ($project['status'] === 'deleted' || $project['status'] === 'banned' || $project['status'] === 'inactive') {
         http_response_code(404);
         readfile($rootDir . '/expired_template.html');
         exit;
